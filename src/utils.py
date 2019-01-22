@@ -15,7 +15,7 @@ Created on Fri Oct 19 16:45:12 2018
 """
 
 #caps net idea for oct lumen profiler 
-#not worked on yet
+#hi
 #this iteration of code runs a conv capsule idea
 
 import numpy as np
