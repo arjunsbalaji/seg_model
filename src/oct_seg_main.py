@@ -76,12 +76,18 @@ run_name =  args['location'] + '-' + str(args['init_lr']) + '-' + time.asctime()
 if args['train']:
     import train
     sys.stdout.write('-----------Training Model-----------' + '\n')
-    train.train(args, run_name)
+    #train.train(args, run_name)
+    trainer = train.Train(args, run_name)
+    trainer.train()
     
 if args['test']:
     import test
     sys.stdout.write('-----------Testing Model-----------' + '\n')
-    test.test(args, run_name)
+    #test.test(args, run_name)
+    tester = test.Test(args, run_name)
+    tester.test()
+    
+    
 total_end_time = time.time()
 
 sys.stdout.write('Total Completion Time : ' + str(total_end_time-total_start_time) + ' secs')
