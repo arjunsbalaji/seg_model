@@ -15,11 +15,32 @@ Created on Fri Oct 19 16:45:12 2018
 """
 
 #caps net idea for oct lumen profiler 
-#hi
+#not worked on yet
 #this iteration of code runs a conv capsule idea
 
 import numpy as np
+import os
 import torch 
+from torch.utils.data import Dataset, DataLoader
+import torch.optim as optim
+from torch.autograd import Variable
+import time 
+import matplotlib.pyplot as plt
+import shutil
+from sklearn import preprocessing
+from skimage.transform import resize
+from matplotlib import pyplot
+
+
+#start_time = time.time()
+
+os.chdir('..')
+#print(os.getcwd())
+
+
+def get_image(main_data_dir, name, image_type):
+    this_data_path = os.path.join(main_data_dir, image_type)
+    return np.genfromtxt(os.path.join(this_data_path, name), delimiter = ',')
 
 ###############################################################################
 #need this special squash function for caps net
@@ -38,6 +59,79 @@ def squash(s, axis = -1, epsilon = 1e-7):
     #for squash factor to be broadcasted appropriately 
     return torch.mul(squash_factor.unsqueeze(-1), unit_vector)
 
+###############################################################################
+#dataset class
+class OCTDataset(Dataset):
+    """
+    First we create a dataset that will encapsulate our data. It has 3 special 
+    functions which will be explained as they go. We will pass this dataset object
+    to the torch dataloader object later which will make training easier.
+    """
+    def __init__ (self,
+                  main_data_dir,
+                  start_size,
+                  transform = None):
+        self.main_data_dir = main_data_dir
+        self.start_size = start_size
+        self.transform = transform
+        
+        #iterate through the 2d images and get all their names
+        name_list = []
+        for im in os.listdir(os.path.join(self.main_data_dir, 'OG_IMAGES')):
+            filename = os.fsdecode(im)
+            name_list.append(filename)
+            
+        self.name_list = name_list
+        
+        
+    def __getitem__(self, idx):
+        """This function will allow us to index the data object and it will 
+        return a sample."""
+        name = self.name_list[idx]
+        
+        #label
+        #TL = get_image(name, 'TL')
+        #FL = get_image(name, 'FL')
+        #ILT = get_image(name, 'ILT')      
+        #print(self.main_data_dir, name, 'FILLED_OBJECTIVE')
+        label = get_image(self.main_data_dir, name, 'FILLED_OBJECTIVE')
+        
+        #this bit is hacky, but YOLO its to make the capsnet output shape match
+        # the label shape 
+        
+        #label = label[2:-2]
+        #label = label[:][:-1]
+        #image data and filters
+
+        image = get_image(self.main_data_dir, name, 'OG_IMAGES')
+        double_filter = get_image(self.main_data_dir, name, 'DOUBLE_FILTER')
+        long_grad = get_image(self.main_data_dir, name, 'LONG_GRAD')
+        
+        
+        image = resize(image, output_shape = self.start_size)
+        double_filter = resize(double_filter, output_shape = self.start_size)
+        long_grad = resize(long_grad, output_shape = self.start_size)
+        
+        label = resize(label, output_shape = self.start_size)
+        
+        
+        image = preprocessing.scale(image)
+        #og = preprocessing.MinMaxScaler(og)
+        image = image
+        
+        
+        sample = {'input': torch.cat((torch.tensor(image).unsqueeze(0),
+                                      torch.tensor(double_filter).unsqueeze(0),
+                                      torch.tensor(long_grad).unsqueeze(0))),
+                  'label': torch.tensor(label),
+                  'case_name': name}
+
+        return sample
+    
+    def __len__(self):    
+        """This function is mandated by Pytorch and allows us to see how many 
+        data points we have in our dataset"""
+        return len(self.name_list)
 
 ###############################################################################
 class Get_Primary_Caps(torch.nn.Module):
@@ -62,20 +156,18 @@ class Get_Primary_Caps(torch.nn.Module):
         #this is so important dont get it wrong 
         #O = (W - K - 2P)/S +1
         
-        conv1_parameters = {'i': 3, 'o': 32, 'k': 5, 's': 2, 'p':2}
+        conv1_parameters = {'i': 3, 'o': 32, 'k': (2, 2), 's': 2}
         self.conv1 = torch.nn.Conv2d(in_channels=conv1_parameters['i'],
                                      out_channels=conv1_parameters['o'],
                                      kernel_size=conv1_parameters['k'],
-                                     stride=conv1_parameters['s'],
-                                     padding=conv1_parameters['p'])
+                                     stride=conv1_parameters['s'])
         
         
-        conv2_parameters = {'i': 32, 'o': self.caps1_n_dims * self.caps1_n_maps, 'k': 5, 's': 2, 'p':2}
+        conv2_parameters = {'i': 32, 'o': self.caps1_n_dims * self.caps1_n_maps, 'k': 2, 's': 2}
         self.conv2 = torch.nn.Conv2d(in_channels=conv2_parameters['i'],
                                      out_channels=conv2_parameters['o'],
                                      kernel_size=conv2_parameters['k'],
-                                     stride=conv2_parameters['s'],
-                                     padding=conv2_parameters['p'])
+                                     stride=conv2_parameters['s'])
         
             
     def output_params(self):
@@ -290,13 +382,20 @@ class Agreement_Routing_Down(torch.nn.Module):
         self.new_wl = int(new_wl)
         self.num_iterations = num_iterations 
         self.softmax = torch.nn.Softmax(dim = -1)
-        #self.bias = bias.repeat((1, 1, self.new_hl, self.new_wl, 1))
+        self.bias = bias.repeat((1, 1, self.new_hl, self.new_wl, 1))
         
-        self.b = torch.nn.Parameter(torch.zeros((1,
-                                                 self.output_caps_maps,
-                                                 self.new_hl,
-                                                 self.new_wl,
-                                                 self.input_caps_maps))) #  , device = 'cuda:0')
+        '''
+        self.b = torch.nn.Parameter(torch.zeros(1,
+                                                self.output_caps_maps,
+                                                self.new_hl,
+                                                self.new_wl,
+                                                self.input_caps_maps))
+        '''
+        self.b = torch.zeros((1,
+                             self.output_caps_maps,
+                             self.new_hl,
+                             self.new_wl,
+                             self.input_caps_maps), device = 'cuda:0') #  , device = 'cuda:0')
         
         #self.bias = self.bias.repeat((1, 1, self.new_hl, self.new_wl, 1))
         
@@ -385,7 +484,7 @@ class Get_Abstract_Caps_Up(torch.nn.Module):
                  stride,
                  padding, #MUST E A TUPLE CUNNY
                  output_padding, #outpadding must be a TUPLE BIATCH, also i
-                 uptype,
+                 uptype = 'deconv',
                  across = True):
         super(Get_Abstract_Caps_Up, self).__init__()
         
@@ -419,11 +518,21 @@ class Get_Abstract_Caps_Up(torch.nn.Module):
         padx = self.padding[1]
         
 
+
+        #+1 refers to output padding
+        self.new_hl = (self.old_h-1)*self.stride + self.y_kernel - 2*pady + self.output_padding[0]
+        #self.new_hl = (self.new_hl - 1 + 0) / 1 + 1
+        
+        #+0 refers to output padding
+        self.new_wl = (self.old_w-1)*self.stride + self.x_kernel - 2*padx + self.output_padding[1]
+    #self.predict_vectors = Predict_Vectors_Down(self.W, self.bias)
         
         if self.uptype == 'deconv':
-            self.new_hl = (self.old_h-1)*self.stride + self.y_kernel - 2*pady + self.output_padding[0]
-            self.new_wl = (self.old_w-1)*self.stride + self.x_kernel - 2*padx + self.output_padding[1]
+                    #calculate final prediction heights and widths for routing
     
+
+            #self.new_wl = (self.new_wl - 1 + 0) / 1 + 1
+            
             self.capsconv2d_up = torch.nn.ConvTranspose2d(in_channels = self.capsin_n_maps*self.capsin_n_dims,
                                           out_channels = self.capsout_n_maps*self.capsout_n_dims,
                                           kernel_size = (self.y_kernel, self.x_kernel),
@@ -433,11 +542,9 @@ class Get_Abstract_Caps_Up(torch.nn.Module):
                                           bias = True)
             
         elif self.uptype == 'upsample':
-            #pady = int((self.y_kernel - 1)/2)
-            #padx = int((self.x_kernel - 1)/2)
-            #self.padding = (pady, padx)
-            self.new_hl = 2*self.old_h
-            self.new_wl = 2*self.old_w
+            pady = int((self.y_kernel - 1)/2)
+            padx = int((self.x_kernel - 1)/2)
+            self.padding = (pady, padx)
             self.capsconv2d_up = torch.nn.Conv2d(in_channels = self.capsin_n_maps*self.capsin_n_dims,
                                           out_channels = self.capsout_n_maps*self.capsout_n_dims,
                                           kernel_size = (self.y_kernel, self.x_kernel),
@@ -621,29 +728,28 @@ class CapsNet(torch.nn.Module):
     concatenate are the same size. so we use upsampling. Also be aware of the 
     channels, we want a lot of channels (~1000) so the network learns intricate
     features."""
-    def __init__(self, batch_size, model_args, uptype):
+    def __init__(self, batch_size, uptype):
         super(CapsNet, self).__init__()
         self.batch_size = batch_size
-        self.model_args = model_args
         self.uptype = uptype
         
-        self.get_prim_caps = Get_Primary_Caps(caps1_n_maps = self.model_args['prim maps'],
-                                              caps1_caps_grid_ydim = self.model_args['input shape'][0] / 4,
-                                              caps1_caps_grid_xdim = self.model_args['input shape'][1] / 4,
-                                              caps1_n_dims = self.model_args['prim dims'])
+        self.get_prim_caps = Get_Primary_Caps(caps1_n_maps = 2,
+                                              caps1_caps_grid_ydim = 95,
+                                              caps1_caps_grid_xdim = 128,
+                                              caps1_n_dims = 16)
         prim_params = self.get_prim_caps.output_params()
         
         self.get_abstract_caps1 = Get_Abstract_Caps_Down(self.batch_size,
                                                          capsin_n_maps = prim_params['maps out'],
                                                          capsin_n_dims = prim_params['caps dim'],
-                                                         capsout_n_maps = self.model_args['1 maps'],
-                                                         capsout_n_dims =  self.model_args['1 dims'],
+                                                         capsout_n_maps = 4,
+                                                         capsout_n_dims = 32,
                                                          old_h = prim_params['h'],
                                                          old_w = prim_params['w'],
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
+                                                         padding = 0,
                                                          across=True)
         caps1_params = self.get_abstract_caps1.infer_shapes()
         
@@ -654,25 +760,25 @@ class CapsNet(torch.nn.Module):
                                                          capsout_n_dims = caps1_params['caps dims'],
                                                          old_h = caps1_params['h'],
                                                          old_w = caps1_params['w'],
-                                                         y_kernel = 6,
-                                                         x_kernel = 6,
+                                                         y_kernel = 5,
+                                                         x_kernel = 5,
                                                          stride = 2,
-                                                         padding = 2,
+                                                         padding = 0,
                                                          across=True)
         caps1a_params = self.get_abstract_caps1a.infer_shapes()
         
         self.get_abstract_caps2 = Get_Abstract_Caps_Down(self.batch_size,
                                                          capsin_n_maps = caps1a_params['caps maps'],
                                                          capsin_n_dims = caps1a_params['caps dims'],
-                                                         capsout_n_maps = self.model_args['2 maps'],
-                                                         capsout_n_dims =  self.model_args['2 dims'],
+                                                         capsout_n_maps = 8,
+                                                         capsout_n_dims = 48,
                                                          old_h = int(caps1a_params['h']),
                                                          old_w = int(caps1a_params['w']),
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
-                                                         across=False)
+                                                         padding = 0,
+                                                         across=True)
         caps2_params = self.get_abstract_caps2.infer_shapes()
 
         self.get_abstract_caps2a = Get_Abstract_Caps_Down(self.batch_size,
@@ -682,25 +788,25 @@ class CapsNet(torch.nn.Module):
                                                          capsout_n_dims = caps2_params['caps dims'],
                                                          old_h = caps2_params['h'],
                                                          old_w = caps2_params['w'],
-                                                         y_kernel = 6,
-                                                         x_kernel = 6,
+                                                         y_kernel = 5,
+                                                         x_kernel = 5,
                                                          stride = 2,
-                                                         padding = 2,
+                                                         padding = 0,
                                                          across=True)
         caps2a_params = self.get_abstract_caps2a.infer_shapes()
         
         self.get_abstract_caps3 = Get_Abstract_Caps_Down(self.batch_size,
                                                          capsin_n_maps = caps2a_params['caps maps'],
                                                          capsin_n_dims = caps2a_params['caps dims'],
-                                                         capsout_n_maps = self.model_args['3 maps'],
-                                                         capsout_n_dims = self.model_args['3 dims'],
+                                                         capsout_n_maps = 16,
+                                                         capsout_n_dims = 64,
                                                          old_h = int(caps2a_params['h']),
                                                          old_w = int(caps2a_params['w']),
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
-                                                         across=False)
+                                                         padding = 0,
+                                                         across=True)
         caps3_params = self.get_abstract_caps3.infer_shapes()
 
         self.get_abstract_caps3a = Get_Abstract_Caps_Down(self.batch_size,
@@ -710,10 +816,10 @@ class CapsNet(torch.nn.Module):
                                                          capsout_n_dims = caps3_params['caps dims'],
                                                          old_h = caps3_params['h'],
                                                          old_w = caps3_params['w'],
-                                                         y_kernel = 6,
-                                                         x_kernel = 6,
+                                                         y_kernel = 5,
+                                                         x_kernel = 5,
                                                          stride = 2,
-                                                         padding = 2,
+                                                         padding = 0,
                                                          across=True)
         caps3a_params = self.get_abstract_caps3a.infer_shapes()
         
@@ -741,8 +847,8 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 2,
-                                                         padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         padding = (0,0),
+                                                         output_padding=(1,1),
                                                          uptype = self.uptype,
                                                          across=True)
         caps3u_params = self.get_abstract_caps3u.infer_shapes()
@@ -757,7 +863,7 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
+                                                         padding = 4,
                                                          across=True)
         caps3ua_params = self.get_abstract_caps3ua.infer_shapes()
         
@@ -771,8 +877,8 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 2,
-                                                         padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         padding = (0,0),
+                                                         output_padding=(1,1),
                                                          uptype = self.uptype,
                                                          across=True)
         caps2u_params = self.get_abstract_caps2u.infer_shapes()
@@ -787,7 +893,7 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
+                                                         padding = 4,
                                                          across=True)
         caps2ua_params = self.get_abstract_caps2ua.infer_shapes()
         
@@ -801,12 +907,11 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 2,
-                                                         padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         padding = (0,0),
+                                                         output_padding=(0,1),
                                                          uptype = self.uptype,
                                                          across=True)
         caps1u_params = self.get_abstract_caps1u.infer_shapes()
-        
 
         self.get_abstract_caps1ua = Get_Abstract_Caps_Down(self.batch_size,
                                                          capsin_n_maps = caps1u_params['caps maps'],
@@ -818,44 +923,44 @@ class CapsNet(torch.nn.Module):
                                                          y_kernel = 5,
                                                          x_kernel = 5,
                                                          stride = 1,
-                                                         padding = 2,
+                                                         padding = 4,
                                                          across=True)
         caps1ua_params = self.get_abstract_caps1ua.infer_shapes()
         
         self.get_abstract_caps_final1 = Get_Abstract_Caps_Up(self.batch_size,
                                                          capsin_n_maps = caps1ua_params['caps maps'] + prim_params['maps out'],
                                                          capsin_n_dims = caps1ua_params['caps dims'],
-                                                         capsout_n_maps = self.model_args['final 1 maps'],
-                                                         capsout_n_dims = self.model_args['final 1 dims'],
+                                                         capsout_n_maps = 2,
+                                                         capsout_n_dims = 4,
                                                          old_h = int(caps1ua_params['h']),
                                                          old_w = int(caps1ua_params['w']),
                                                          y_kernel = 7,
                                                          x_kernel = 7,
                                                          stride = 2,
-                                                         padding = (3,3),
-                                                         output_padding=(0,0),
+                                                         padding = (0,0),
+                                                         output_padding=(1,1),
                                                          uptype = self.uptype,
                                                          across=True)
         capsfinal1_params = self.get_abstract_caps_final1.infer_shapes()
         
         self.get_abstract_caps_final2 = Get_Abstract_Caps_Up(self.batch_size,
-                                                         capsin_n_maps = self.model_args['final 1 maps'],
-                                                         capsin_n_dims = self.model_args['final 1 dims'],
-                                                         capsout_n_maps = self.model_args['final 2 maps'],
-                                                         capsout_n_dims = self.model_args['final 2 dims'],
+                                                         capsin_n_maps = 2,
+                                                         capsin_n_dims = 4,
+                                                         capsout_n_maps = 1,
+                                                         capsout_n_dims = 16,
                                                          old_h = int(capsfinal1_params['h']),
                                                          old_w = int(capsfinal1_params['w']),
                                                          y_kernel = 7,
                                                          x_kernel = 7,
                                                          stride = 2,
-                                                         padding = (3,3),
-                                                         output_padding=(0,0),
+                                                         padding = (9,9),
+                                                         output_padding=(1,1),
                                                          uptype = self.uptype,
                                                          across=False)
 
         self.reconstruct = Reconstruction_Layer(self.batch_size,
-                                                capsin_n_maps = self.model_args['final 2 maps'],
-                                                capsin_n_dims = self.model_args['final 2 dims'])
+                                                capsin_n_maps = 1,
+                                                capsin_n_dims = 16)
         
     def forward(self, x):
         x = self.get_prim_caps(x)
@@ -908,7 +1013,7 @@ class CapsNet(torch.nn.Module):
         #print(x.size(), '1u')
         x = self.get_abstract_caps1ua(x)
         #print(x.size(), '1ua')
-
+        
         x = torch.cat((x, x_prim), 1)
         x = self.get_abstract_caps_final1(x)
         #print(x.size(), 'final1')
@@ -945,6 +1050,8 @@ class Dice_Loss(torch.nn.Module):
         loss = (2. * intersection + smooth) / (union + smooth)
         #return 1-loss because we want to minimise dissimilarity
         return 1 - (loss)
+
+
 
 '''
  def printskeet(i):

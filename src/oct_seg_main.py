@@ -12,15 +12,15 @@ Created on Fri Jan 18 22:46:48 2019
 
 #import oct_train
 #import oct_test
-import os
+#import os
 import sys
-import numpy as np
-import shutil
+#import numpy as np
+#import shutil
 import time
 import oct_dataset as octdata
 total_start_time = time.time()
 
-'''hello
+'''
 'home'
     main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
     save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
@@ -33,22 +33,23 @@ total_start_time = time.time()
     save_spot = os.path.join('/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves', run_name)
     warnings.simplefilter('ignore')
 '''
+
 model_args = {'start_size': (380, 512),
-              'input shape': (300, 300), # should be tuple. should match random crop arg
-              'prim maps':2,
+              'input shape': (256,256), # should be tuple. should match random crop arg
+              'prim maps':4,
               'prim dims':16,
-              '1 maps': 4,
+              '1 maps': 8,
               '1 dims': 32,
-              '2 maps': 8,
+              '2 maps': 16,
               '2 dims': 48,              
-              '3 maps': 16,
+              '3 maps': 32,
               '3 dims': 64,
-              '1 maps': 4,
-              '1 dims': 32,
-              'final 1 maps': 2,
-              'final 1 dims': 16,
+              #'1 maps': 4,
+              #'1 dims': 48,
+              'final 1 maps': 8,
+              'final 1 dims': 32,
               'final 2 maps': 1,
-              'final 2 dims': 28}
+              'final 2 dims': 16}
 
 args = {'location': 'laptop',
         'model_args': model_args,
@@ -57,19 +58,19 @@ args = {'location': 'laptop',
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
-        'show_percentage': 33,
-        'save_analysis':True,
-        'transforms': octdata.RandomCrop(300),#None,#octdata.RandomCrop(300),
-        'epochs': 1,
+        'show_percentage': 10,
+        'save_analysis':True, #True,
+        'transforms': octdata.RandomCrop(256),#None,#octdata.RandomCrop(300),
+        'epochs': 3,
         'batch_size': 1, #int
-        'uptype': 'upsample',
-        'init_lr':0.0005,
+        'uptype': 'upsample', #or deconv
+        'init_lr':0.0001,
         'scheduler_gamma': 0.3,
         'scheduler_step': 1,
         'loss1_alpha': 0.05,
         'loss2_alpha': 1,
         'loss3_alpha': 0.01,
-        'checkpoint_save': True}
+        'checkpoint_save': True}#True}
 
 run_name =  args['location'] + '-' + str(args['init_lr']) + '-' + time.asctime().replace(' ', '-')
     
