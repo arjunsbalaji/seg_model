@@ -13,6 +13,7 @@ save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
 
 run_name = 'capsnetupsample-pawsey-Tue-Jan-15-06:45:55-2019'
 run_name = 'capsnetupsample-pawsey-Fri-Jan-18-10:43:32-2019'
+#run_name = 'capsnetupsample-pawsey-Tue-Jan-22-09:16:40-2019'
 
 dice = np.load(save_folder + run_name + '/DICE.npy')
 bce = np.load(save_folder + run_name + '/BCE.npy')
