@@ -34,24 +34,22 @@ total_start_time = time.time()
     warnings.simplefilter('ignore')
 '''
 
-model_args = {'start_size': (380, 512),
-              'input shape': (256,256), # should be tuple. should match random crop arg
+model_args = {'raw size': (512, 512),
+              'cropped size': (320,320), # should be tuple. should match random crop arg
               'prim maps':4,
               'prim dims':16,
               '1 maps': 8,
-              '1 dims': 32,
+              '1 dims': 24,
               '2 maps': 16,
-              '2 dims': 48,              
-              '3 maps': 32,
-              '3 dims': 64,
-              #'1 maps': 4,
-              #'1 dims': 48,
-              'final 1 maps': 8,
+              '2 dims': 32,              
+              '3 maps': 24,
+              '3 dims': 48,
+              'final 1 maps': 2,
               'final 1 dims': 32,
               'final 2 maps': 1,
               'final 2 dims': 16}
 
-args = {'location': 'laptop',
+args = {'location': 'home',
         'model_args': model_args,
         'train': True,
         'load_checkpoint': False, # for resuming training #path to checkpoints folder in models run_save
@@ -60,7 +58,7 @@ args = {'location': 'laptop',
         'display_text':True,
         'show_percentage': 10,
         'save_analysis':True, #True,
-        'transforms': octdata.RandomCrop(256),#None,#octdata.RandomCrop(300),
+        'transforms': True, #must be set to true!
         'epochs': 3,
         'batch_size': 1, #int
         'uptype': 'upsample', #or deconv

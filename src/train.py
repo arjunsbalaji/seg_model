@@ -22,6 +22,7 @@ import warnings
 import json 
 
 torch.manual_seed(7)
+np.random.seed(7)
 
 start_time = time.time()
 
@@ -51,7 +52,8 @@ class Train(object):
             os.mkdir(self.save_spot)
     
         self.data = octdata.OCTDataset(main_data_dir = self.main_data_dir,
-                                       start_size = args['model_args']['start_size'],
+                                       start_size = args['model_args']['raw size'],
+                                       input_shape=args['model_args']['cropped size'],
                                        transform = args['transforms'])
         
         self.total_epoch = args['epochs']
@@ -63,6 +65,7 @@ class Train(object):
                             shuffle = False)
     
         self.model_placeholder = utils.CapsNet(batch_size=args['batch_size'],
+                                               args=args,
                                                model_args = args['model_args'],
                                                uptype = args['uptype'])
         if args['load_checkpoint']:
@@ -139,7 +142,7 @@ class Train(object):
         
             for i, sample in enumerate(self.loader):
                 sample_start_time = time.time()
-                
+                self.sample = sample
                 input_data = sample['input']
                 input_data = input_data.float()
                 #input_data = input_data.unsqueeze(1)
@@ -150,9 +153,14 @@ class Train(object):
                 label_data = sample['label']
                 label_data = label_data.float()
                 label_data = label_data.to(self.cuda_device)
-                #label_data = label_data
-                label_data = torch.unsqueeze(label_data, 1)
                 
+                #print(label_data.size())
+                label_data = label_data.squeeze()
+                #print(label_data.size())
+                label_data = torch.unsqueeze(label_data, 0)
+                #print(label_data.size())
+                label_data = torch.unsqueeze(label_data, 1)
+                #print(label_data.size())
                 caps_out, reconstruct = self.model_placeholder(input_data)
                 
                 #label_data = torch.randint(0,2,(1, 3, 128, 128))

@@ -621,15 +621,21 @@ class CapsNet(torch.nn.Module):
     concatenate are the same size. so we use upsampling. Also be aware of the 
     channels, we want a lot of channels (~1000) so the network learns intricate
     features."""
-    def __init__(self, batch_size, model_args, uptype):
+    def __init__(self, batch_size, args, model_args, uptype):
         super(CapsNet, self).__init__()
         self.batch_size = batch_size
+        self.args = args
         self.model_args = model_args
         self.uptype = uptype
-        
+        if self.args['transforms']:
+            caps1_ygrid = self.model_args['cropped size'][0]
+            caps1_xgrid = self.model_args['cropped size'][1]
+        else:
+            caps1_ygrid = self.model_args['raw size'][0]
+            caps1_xgrid = self.model_args['raw size'][1]            
         self.get_prim_caps = Get_Primary_Caps(caps1_n_maps = self.model_args['prim maps'],
-                                              caps1_caps_grid_ydim = self.model_args['input shape'][0] / 4,
-                                              caps1_caps_grid_xdim = self.model_args['input shape'][1] / 4,
+                                              caps1_caps_grid_ydim = int(caps1_ygrid / 4),
+                                              caps1_caps_grid_xdim = int(caps1_xgrid / 4),
                                               caps1_n_dims = self.model_args['prim dims'])
         prim_params = self.get_prim_caps.output_params()
         

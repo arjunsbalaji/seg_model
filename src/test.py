@@ -42,7 +42,8 @@ class Test(object):
             warnings.simplefilter('ignore')
     
         self.data = octdata.OCTDataset(main_data_dir = self.main_data_dir,
-                             start_size = args['model_args']['start_size'],
+                             start_size = args['model_args']['raw size'],
+                             input_shape=args['model_args']['cropped size'],
                              transform = args['transforms'])
         self.total_epoch = args['epochs']
         self.batch_size = args['batch_size']
@@ -53,6 +54,7 @@ class Test(object):
                         shuffle = False)
     
         self.model_placeholder = utils.CapsNet(batch_size=self.batch_size,
+                                               args=args,
                                           model_args = args['model_args'],
                                           uptype = args['uptype'])
         
