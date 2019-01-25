@@ -10,9 +10,11 @@ Created on Mon Jan 21 11:14:58 2019
 import numpy as np
 import os
 import torch 
+import sys
 from torch.utils.data import Dataset
 from sklearn import preprocessing
 from skimage.transform import resize
+from torchvision import transforms
 
 ###############################################################################
 
@@ -68,10 +70,12 @@ class OCTDataset(Dataset):
     def __init__ (self,
                   main_data_dir,
                   start_size,
+                  input_shape,
                   transform = None):
         self.main_data_dir = main_data_dir
         self.start_size = start_size
         self.transform = transform
+        self.input_shape = input_shape
         
         #iterate through the 2d images and get all their names
         name_list = []
@@ -80,6 +84,38 @@ class OCTDataset(Dataset):
             name_list.append(filename)
             
         self.name_list = name_list
+        self.pcrop = np.random.rand()
+        self. phflip = np.random.rand()
+        self.pvflip = np.random.rand()
+        
+    def transformation(self, input_data, label):
+        _, h, w = input_data.size()
+        hnew, wnew = self.input_shape
+        combined = torch.cat((input_data, label), 0)
+        combined = transforms.functional.to_pil_image(combined)
+        #label = transforms.functional.to_pil_image(label)
+        #sys.stdout.write('after pil')
+        #random crop of startsize
+        if self.pcrop > 0.00000:
+            i = np.random.randint(0, h - hnew)
+            left = np.random.randint(0, w - wnew)
+            combined = transforms.functional.crop(combined, i, left, hnew, wnew)
+            #label = transforms.functional.crop(label, i, left, hnew, wnew)
+        #sys.stdout.write('after crop')    
+        if self.phflip > 0.5:
+            combined = transforms.functional.hflip(combined)
+            #label = transforms.functional.hflip(label)
+        #sys.stdout.write('after hflip')
+        if self.pvflip > 0.5:
+            combined = transforms.functional.vflip(combined)
+            #label = transforms.functional.vflip(label)
+        #sys.stdout.write('after vflip')
+        combined = transforms.functional.to_tensor(combined)
+        #label = transforms.functional.to_tensor(label)
+        #sys.stdout.write('after done')
+        
+        #input_data = transforms.functional.normalize(input_data, [0,0,0], [1,1,1])
+        return combined[:-1,:,:], combined[-1].unsqueeze(0)
         
         
     def __getitem__(self, idx):
@@ -92,7 +128,7 @@ class OCTDataset(Dataset):
         #FL = get_image(name, 'FL')
         #ILT = get_image(name, 'ILT')      
         #print(self.main_data_dir, name, 'FILLED_OBJECTIVE')
-        label = get_image(self.main_data_dir, name, 'FILLED_OBJECTIVE')
+        label = get_image(self.main_data_dir, name, 'FILLED_OBJECTIVE')[:,135:895]
         
         #this bit is hacky, but YOLO its to make the capsnet output shape match
         # the label shape 
@@ -101,33 +137,36 @@ class OCTDataset(Dataset):
         #label = label[:][:-1]
         #image data and filters
 
-        image = get_image(self.main_data_dir, name, 'OG_IMAGES')
-        double_filter = get_image(self.main_data_dir, name, 'DOUBLE_FILTER')
-        long_grad = get_image(self.main_data_dir, name, 'LONG_GRAD')
+        image = get_image(self.main_data_dir, name, 'OG_IMAGES')[:,135:895]
+        double_filter = get_image(self.main_data_dir, name, 'DOUBLE_FILTER')[:,135:895]
+        long_grad = get_image(self.main_data_dir, name, 'LONG_GRAD')[:,135:895]
         
         
-        image = resize(image, output_shape = self.start_size)
-        double_filter = resize(double_filter, output_shape = self.start_size)
-        long_grad = resize(long_grad, output_shape = self.start_size)
+        if not self.transform:
+            image = resize(image, output_shape = self.start_size)
+            double_filter = resize(double_filter, output_shape = self.start_size)
+            long_grad = resize(long_grad, output_shape = self.start_size)
         
-        label = resize(label, output_shape = self.start_size)
-        
-        
-        image = preprocessing.scale(image)
+            label = resize(label, output_shape = self.start_size)
+            
+            image = preprocessing.scale(image)
         #og = preprocessing.MinMaxScaler(og)
-        image = image
-        
-        
-        sample = {'input': torch.cat((torch.tensor(image).unsqueeze(0),
-                                      torch.tensor(double_filter).unsqueeze(0),
-                                      torch.tensor(long_grad).unsqueeze(0))),
-                  'label': torch.tensor(label),
+
+        #print(image.shape)
+        sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
+                                      torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
+                                      torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
+                  'label': torch.tensor(label, dtype=torch.float32).unsqueeze(0),
                   'case_name': name}
         
-        #print(sample['input'].size())
-        if self.transform:
-            sample = self.transform(sample)
         
+        if self.transform:
+            #sample = self.transform(sample)
+            input_data, label_data = self.transformation(sample['input'], sample['label'])
+            sample = {'input': input_data,
+                      'label': label_data,
+                      'case_name': name}
+
         return sample
     
     def __len__(self):    

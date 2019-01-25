@@ -30,7 +30,7 @@ class Test(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
         
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/TESTDATA'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/test_data'
@@ -42,7 +42,8 @@ class Test(object):
             warnings.simplefilter('ignore')
     
         self.data = octdata.OCTDataset(main_data_dir = self.main_data_dir,
-                             start_size = args['model_args']['start_size'],
+                             start_size = args['model_args']['raw size'],
+                             input_shape=args['model_args']['cropped size'],
                              transform = args['transforms'])
         self.total_epoch = args['epochs']
         self.batch_size = args['batch_size']
@@ -53,6 +54,7 @@ class Test(object):
                         shuffle = False)
     
         self.model_placeholder = utils.CapsNet(batch_size=self.batch_size,
+                                               args=args,
                                           model_args = args['model_args'],
                                           uptype = args['uptype'])
         
@@ -117,7 +119,7 @@ class Test(object):
                 label_data = label_data.float()
                 label_data = label_data.to(self.cuda_device)
                 label_data = label_data
-                label_data = torch.unsqueeze(label_data, 1)
+                #label_data = torch.unsqueeze(label_data, 1)
                 
                 caps_out, reconstruct = self.model_placeholder(input_data)
                 
