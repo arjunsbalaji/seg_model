@@ -49,9 +49,9 @@ model_args = {'raw size': (512, 512),
               'final 2 maps': 1,
               'final 2 dims': 16}
 
-args = {'location': 'home',
+args = {'location': 'pawsey',
         'model_args': model_args,
-        'train': False,
+        'train': True,
         'load_checkpoint': False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
@@ -59,7 +59,7 @@ args = {'location': 'home',
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 3,
+        'epochs': 5,
         'batch_size': 1, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,

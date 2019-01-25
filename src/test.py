@@ -45,7 +45,7 @@ class Test(object):
                              start_size = args['model_args']['raw size'],
                              input_shape=args['model_args']['cropped size'],
                              transform = args['transforms'])
-        self.total_epoch = args['epochs']
+        self.total_epoch = 1 #args['epochs']
         self.batch_size = args['batch_size']
     
         #set up the loader object. increasing batchsize will increase memory usage.
