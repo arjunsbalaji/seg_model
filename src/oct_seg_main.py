@@ -51,7 +51,7 @@ model_args = {'raw size': (512, 512),
 
 args = {'location': 'home',
         'model_args': model_args,
-        'train': True,
+        'train': False,
         'load_checkpoint': False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
