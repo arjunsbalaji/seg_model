@@ -69,7 +69,7 @@ class Train(object):
                                                model_args = args['model_args'],
                                                uptype = args['uptype'])
         if args['load_checkpoint']:
-            loaded_model = torch.load(args['load_model'])
+            loaded_model = torch.load(os.path.join(self.args['load_checkpoint'], 'pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
             del loaded_model
         
@@ -107,16 +107,16 @@ class Train(object):
         self.optimizer = torch.optim.Adam(self.model_placeholder.parameters(),
                                      lr=args['init_lr'])
         if args['load_checkpoint']:
-            loaded_optimzer = torch.load(os.path.join(self.save_spot, 'checkpoint', 'optimizer.pt'))
-            self.model_placeholder.load_state_dict(loaded_optimzer)
+            loaded_optimzer = torch.load(os.path.join(self.args['load_checkpoint'], 'optimizer.pt'))
+            self.optimizer.load_state_dict(loaded_optimzer)
             del loaded_optimzer
             
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
                                                     step_size = args['scheduler_step'],
                                                     gamma = args['scheduler_gamma'])
         if args['load_checkpoint']:
-            loaded_scheduler = torch.load(os.path.join(self.save_spot, 'checkpoint', 'scheduler.pt'))
-            self.model_placeholder.load_state_dict(loaded_scheduler)
+            loaded_scheduler = torch.load(os.path.join(self.args['load_checkpoint'], 'scheduler.pt'))
+            self.scheduler.load_state_dict(loaded_scheduler)
             del loaded_scheduler
         
         self.collection_of_losses1 = []
@@ -230,10 +230,11 @@ class Train(object):
             temp_args['transforms'] = str(self.args['transforms'])
             with open(os.path.join(analysis_spot, 'args.json'), 'w') as fp:
                 json.dump(temp_args, fp, indent = 4)
-    
+
+
+        state_spot = os.path.join(self.save_spot, 'checkpoint')
+        os.mkdir(state_spot)
         if self.args['checkpoint_save']:
-            state_spot = os.path.join(self.save_spot, 'checkpoint')
-            os.mkdir(state_spot)
             torch.save(self.model_placeholder.state_dict(), state_spot + '/pytorchmodel.pt')
             torch.save(self.optimizer.state_dict(), state_spot + '/optimizer.pt')
             torch.save(self.scheduler.state_dict(), state_spot + '/scheduler.pt')

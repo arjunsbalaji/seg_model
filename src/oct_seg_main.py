@@ -17,7 +17,7 @@ import sys
 #import numpy as np
 #import shutil
 import time
-import oct_dataset as octdata
+#import oct_dataset as octdata
 total_start_time = time.time()
 
 '''
@@ -52,14 +52,14 @@ model_args = {'raw size': (512, 512),
 args = {'location': 'pawsey',
         'model_args': model_args,
         'train': True,
-        'load_checkpoint': False, # for resuming training #path to checkpoints folder in models run_save
+        'load_checkpoint': '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/pawsey-0.0001-Fri-Jan-25-04:20:00-2019/checkpoint/',#False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 5,
+        'epochs': 1,
         'batch_size': 1, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,
@@ -70,7 +70,7 @@ args = {'location': 'pawsey',
         'loss3_alpha': 0.01,
         'checkpoint_save': True}#True}
 
-run_name =  args['location'] + '-' + str(args['init_lr']) + '-' + time.asctime().replace(' ', '-')
+run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
     
 if args['train']:
     import train
@@ -78,12 +78,14 @@ if args['train']:
     #train.train(args, run_name)
     trainer = train.Train(args, run_name)
     trainer.train()
+    model = trainer.model_placeholder
     
 if args['test']:
     import test
     sys.stdout.write('-----------Testing Model-----------' + '\n')
     #test.test(args, run_name)
-    tester = test.Test(args, run_name)
+    
+    tester = test.Test(args, run_name, None)
     tester.test()
     
     

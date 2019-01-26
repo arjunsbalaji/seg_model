@@ -23,7 +23,7 @@ torch.manual_seed(7)
 start_time = time.time()
 
 class Test(object):
-    def __init__(self, args, run_name):
+    def __init__(self, args, run_name, trained_model):
         self.args = args
         self.run_name = run_name
         
@@ -58,11 +58,17 @@ class Test(object):
                                           model_args = args['model_args'],
                                           uptype = args['uptype'])
         
-        if args['load_model']:
+        
+        if args['train']:
+            loaded_model = torch.load(os.path.join(self.save_spot, 'checkpoint','pytorchmodel.pt'))
+            self.model_placeholder.load_state_dict(loaded_model)
+            del loaded_model
+        elif args['load_model']:
             loaded_model = torch.load(args['load_model'])
             self.model_placeholder.load_state_dict(loaded_model)
             del loaded_model
-            
+        else:
+            sys.stdout.write('ERROR!: need to either train a model or load a model to test.')
         self.model_placeholder.to(self.cuda_device)
         self.model_placeholder.eval()
     
@@ -162,10 +168,10 @@ class Test(object):
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         
         if self.args['save_analysis']:
-            np.save(self.save_spot + '/test_DICE.npy', np.array(self.collection_of_losses1))
-            np.save(self.save_spot + '/test_BCE.npy', np.array(self.collection_of_losses2))
-            np.save(self.save_spot + '/test_MSERecon.npy', np.array(self.collection_of_losses3))
-            np.save(self.save_spot + '/test_pics.npy', saved_pictures.cpu().numpy())
+            np.save(self.save_spot + '/analysis/test_DICE.npy', np.array(self.collection_of_losses1))
+            np.save(self.save_spot + '/analysis/test_BCE.npy', np.array(self.collection_of_losses2))
+            np.save(self.save_spot + '/analysis/test_MSERecon.npy', np.array(self.collection_of_losses3))
+            np.save(self.save_spot + '/analysis/test_pics.npy', saved_pictures.cpu().numpy())
     
         end_time = time.time()
         

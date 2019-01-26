@@ -15,6 +15,7 @@ from torch.utils.data import Dataset
 from sklearn import preprocessing
 from skimage.transform import resize
 from torchvision import transforms
+import matplotlib.pyplot as plt
 
 ###############################################################################
 
@@ -87,6 +88,7 @@ class OCTDataset(Dataset):
         self.pcrop = np.random.rand()
         self. phflip = np.random.rand()
         self.pvflip = np.random.rand()
+        self.pafftrans = np.random.rand()
         
     def transformation(self, input_data, label):
         _, h, w = input_data.size()
@@ -96,10 +98,7 @@ class OCTDataset(Dataset):
         #label = transforms.functional.to_pil_image(label)
         #sys.stdout.write('after pil')
         #random crop of startsize
-        if self.pcrop > 0.00000:
-            i = np.random.randint(0, h - hnew)
-            left = np.random.randint(0, w - wnew)
-            combined = transforms.functional.crop(combined, i, left, hnew, wnew)
+
             #label = transforms.functional.crop(label, i, left, hnew, wnew)
         #sys.stdout.write('after crop')    
         if self.phflip > 0.5:
@@ -110,12 +109,48 @@ class OCTDataset(Dataset):
             combined = transforms.functional.vflip(combined)
             #label = transforms.functional.vflip(label)
         #sys.stdout.write('after vflip')
+        '''
+        if self.pafftrans > 0.01:
+            angle = np.random.randint(-175, 175)
+            #shear = np.random.randint(-175, 175)
+            combined = transforms.functional.affine(combined,
+                                                    translate = (0,0), 
+                                                    angle=angle,
+                                                    scale = 1,
+                                                    shear=0)
+            '''
+        if self.pcrop > 0:
+            i = np.random.randint(0, h - hnew)
+            left = np.random.randint(0, w - wnew)
+            combined = transforms.functional.crop(combined, i, left, hnew, wnew)
+            
         combined = transforms.functional.to_tensor(combined)
         #label = transforms.functional.to_tensor(label)
         #sys.stdout.write('after done')
         
         #input_data = transforms.functional.normalize(input_data, [0,0,0], [1,1,1])
         return combined[:-1,:,:], combined[-1].unsqueeze(0)
+        
+    def visualise(self, idx):
+        
+        sample = self.__getitem__(idx)
+        #print(sample['input'].size())
+        #print(sample['label'].size())
+        input_data = sample['input'].cpu().numpy()[0,:,:]
+        label_data = sample['label'].cpu().numpy()[0,:,:]
+        
+        f, (axin, axl) = plt.subplots(1,2, sharey=True)
+        f.subplots_adjust(hspace=0.3)
+        plt.tight_layout()
+        
+        #plot image
+        image = axin.imshow(input_data,
+                            aspect = 'equal')
+        f.colorbar(image, ax=axin, orientation='vertical', fraction = 0.05)
+        
+        axl.imshow(label_data,
+                   aspect = 'equal')
+        plt.show()
         
         
     def __getitem__(self, idx):
@@ -175,3 +210,4 @@ class OCTDataset(Dataset):
         return len(self.name_list)
 
 ###############################################################################
+        
