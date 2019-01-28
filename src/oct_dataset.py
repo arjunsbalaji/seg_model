@@ -93,6 +93,7 @@ class OCTDataset(Dataset):
     def transformation(self, input_data, label):
         _, h, w = input_data.size()
         hnew, wnew = self.input_shape
+        label = label.unsqueeze(0)
         combined = torch.cat((input_data, label), 0)
         combined = transforms.functional.to_pil_image(combined)
         #label = transforms.functional.to_pil_image(label)
@@ -191,7 +192,7 @@ class OCTDataset(Dataset):
         sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
                                       torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
                                       torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
-                  'label': torch.tensor(label, dtype=torch.float32).unsqueeze(0),
+                  'label': torch.tensor(label, dtype=torch.float32),
                   'case_name': name}
         
         

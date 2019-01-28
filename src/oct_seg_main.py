@@ -22,7 +22,7 @@ total_start_time = time.time()
 
 '''
 'home'
-    main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
+    main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
     save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
 'pawsey'
     main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -34,7 +34,7 @@ total_start_time = time.time()
     warnings.simplefilter('ignore')
 '''
 
-model_args = {'raw size': (512, 512),
+model_args = {'raw size': (320, 320),
               'cropped size': (320,320), # should be tuple. should match random crop arg
               'prim maps':4,
               'prim dims':16,
@@ -52,15 +52,15 @@ model_args = {'raw size': (512, 512),
 args = {'location': 'pawsey',
         'model_args': model_args,
         'train': True,
-        'load_checkpoint': '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/pawsey-0.0001-Fri-Jan-25-04:20:00-2019/checkpoint/',#False, # for resuming training #path to checkpoints folder in models run_save
+        'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 1,
-        'batch_size': 1, #int
+        'epochs': 3,
+        'batch_size': 5, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.3,

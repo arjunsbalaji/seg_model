@@ -34,7 +34,7 @@ class Train(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -148,28 +148,35 @@ class Train(object):
                 #input_data = input_data.unsqueeze(1)
                 input_data = input_data.to(self.cuda_device)
                 #input_data = input_data
-                
+                #print(input_data.size(), 'i')
                 
                 label_data = sample['label']
                 label_data = label_data.float()
                 label_data = label_data.to(self.cuda_device)
                 
-                #print(label_data.size())
+                #print(label_data.size(), 'l1')
                 label_data = label_data.squeeze()
-                #print(label_data.size())
-                label_data = torch.unsqueeze(label_data, 0)
-                #print(label_data.size())
-                label_data = torch.unsqueeze(label_data, 1)
+                
+                #make the label size correct depending on batch size!
+                if len(label_data.size()) == 2:
+                    #print(label_data.size(), 'l2')
+                    label_data = torch.unsqueeze(label_data, 0)
+                    #print(label_data.size(), 'l3')
+                    label_data = torch.unsqueeze(label_data, 1)
+                else:
+                    label_data = torch.unsqueeze(label_data, 1)
                 #print(label_data.size())
                 caps_out, reconstruct = self.model_placeholder(input_data)
                 
+                #print(caps_out.size(), reconstruct.size())
                 #label_data = torch.randint(0,2,(1, 3, 128, 128))
                 #print('input size -', input_data.size()) 
                 #print(pred.size(), 'pred size')
                 #print('label size -', label_data.size())
                 
-                lumen_masked = input_data[:,0,:,:] * label_data
+                lumen_masked = (input_data[:,0,:,:].unsqueeze(1)) * label_data
                 
+                #print(lumen_masked.size())
                 
                 
                 self.optimizer.zero_grad()
@@ -207,10 +214,18 @@ class Train(object):
                     sys.stdout.write('| ' + 'Time remaining = ' +  str(np.round(time_left, 0)) + ' secs' + '\n')
                     
                     #pad_out = torch.nn.ZeroPad2d((0,0,2,2))
+                    
+                    #save the first sample per batch
+                    input_to_save = input_data.data[0,0,:,:].unsqueeze(0)
+                    caps_to_save = caps_out.data[0,:,:,:]
+                    label_to_save = label_data.data[0,:,:,:]
+                    reconc_to_save = reconstruct.data[0,:,:,:]
+                    
                     saved_pictures = torch.cat((saved_pictures,
-                                                torch.cat((input_data.data[:,0].unsqueeze(0),
-                                                           caps_out.data,
-                                                           label_data.data), 1)))
+                                                torch.cat((input_to_save,
+                                                           caps_to_save,
+                                                           label_to_save,
+                                                           reconc_to_save), 1)))
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
@@ -239,7 +254,7 @@ class Train(object):
             torch.save(self.optimizer.state_dict(), state_spot + '/optimizer.pt')
             torch.save(self.scheduler.state_dict(), state_spot + '/scheduler.pt')
         else:
-            torch.save(self.model_placeholder.state_dict(), self.save_spot + '/pytorchmodel.pt')
+            torch.save(self.model_placeholder.state_dict(), self.state_spot + '/pytorchmodel.pt')
     
         end_time = time.time()
         
