@@ -205,7 +205,7 @@ class Train(object):
                     time_left = (time.time() - sample_start_time) * ((self.total_epoch * self.total_images) - ((epoch + 1) * self.batch_size * (i+1)))
                     self.time_prediction_list.append(time_left)
                     #note 1-dice loss to get back actual dice similarity coefficient
-                    nth_image = epoch * self.total_images / self.batch_size + i
+                    nth_image = int(epoch * self.total_images / self.batch_size + i)
                     sys.stdout.write('Epoch ' + str(epoch + 1) + ' ')
                     sys.stdout.write('| ' + str( (i * self.batch_size)  + 1) + ' ')
                     sys.stdout.write('| ' + 'DSM = ' + str(1 - self.collection_of_losses1[nth_image]) + ' ')
