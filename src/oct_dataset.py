@@ -189,15 +189,34 @@ class OCTDataset(Dataset):
         #og = preprocessing.MinMaxScaler(og)
 
         #print(image.shape)
-        sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
-                                      torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
-                                      torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
-                  'label': torch.tensor(label, dtype=torch.float32),
-                  'case_name': name}
+            sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
+                      'label': torch.tensor(label, dtype=torch.float32),
+                      'case_name': name}
         
         
         if self.transform:
             #sample = self.transform(sample)
+            ysize = self.start_size[0] + 20
+            xsize = self.start_size[1] + 20
+            
+            image = resize(image, output_shape = (ysize, xsize))
+            double_filter = resize(double_filter, output_shape = (ysize, xsize))
+            long_grad = resize(long_grad, output_shape = (ysize, xsize))
+        
+            label = resize(label, output_shape = (ysize, xsize))
+            
+            image = preprocessing.scale(image)
+            #og = preprocessing.MinMaxScaler(og)
+
+            #print(image.shape)
+            sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
+                      'label': torch.tensor(label, dtype=torch.float32),
+                      'case_name': name}
+            
             input_data, label_data = self.transformation(sample['input'], sample['label'])
             sample = {'input': input_data,
                       'label': label_data,
