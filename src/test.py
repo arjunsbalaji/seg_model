@@ -62,11 +62,11 @@ class Test(object):
         if args['train']:
             loaded_model = torch.load(os.path.join(self.save_spot, 'checkpoint','pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
-            del loaded_model
+            #del loaded_model
         elif args['load_model']:
             loaded_model = torch.load(args['load_model'])
             self.model_placeholder.load_state_dict(loaded_model)
-            del loaded_model
+            #del loaded_model
         else:
             sys.stdout.write('ERROR!: need to either train a model or load a model to test.')
             

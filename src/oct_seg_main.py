@@ -59,7 +59,7 @@ args = {'location': 'pawsey',
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 3,
+        'epochs': 5,
         'batch_size': 5, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,

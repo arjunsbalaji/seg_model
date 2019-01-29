@@ -71,12 +71,12 @@ class Train(object):
         if args['load_checkpoint']:
             loaded_model = torch.load(os.path.join(self.args['load_checkpoint'], 'pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
-            del loaded_model
+            #del loaded_model
         
         self.model_placeholder.to(self.cuda_device)
         self.model_placeholder.train()
     
-        self.loss_fn1 = utils.Dice_Loss()
+        self.loss_fn1 = utils.Dice_Loss() 
         #loss_fn2 = torch.nn.BCEWithLogitsLoss()
         self.loss_fn2 = torch.nn.BCELoss()
         self.loss_fn3 = torch.nn.MSELoss()
@@ -216,10 +216,10 @@ class Train(object):
                     #pad_out = torch.nn.ZeroPad2d((0,0,2,2))
                     
                     #save the first sample per batch
-                    input_to_save = input_data.data[0,0,:,:].unsqueeze(0)
-                    caps_to_save = caps_out.data[0,:,:,:]
-                    label_to_save = label_data.data[0,:,:,:]
-                    reconc_to_save = reconstruct.data[0,:,:,:]
+                    input_to_save = input_data.data[0,0,:,:].unsqueeze(0).unsqueeze(0)
+                    caps_to_save = caps_out.data[0,:,:,:].unsqueeze(0)
+                    label_to_save = label_data.data[0,:,:,:].unsqueeze(0)
+                    reconc_to_save = reconstruct.data[0,:,:,:].unsqueeze(0)
                     
                     saved_pictures = torch.cat((saved_pictures,
                                                 torch.cat((input_to_save,
