@@ -10,16 +10,11 @@ import matplotlib.pyplot as plt
 
 
 save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
-save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
+#save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
 
 
-run_name = 'capsnetupsample-pawsey-Tue-Jan-15-06:45:55-2019'
-run_name = 'capsnetupsample-pawsey-Fri-Jan-18-10:43:32-2019'
-#run_name = 'capsnetupsample-pawsey-Tue-Jan-15-06:45:55-2019'
-#run_name = 'capsnetupsample-pawsey-Fri-Jan-18-10:43:32-2019'
-#run_name = 'pawsey-0.0001-Fri-Jan-25-04:20:00-2019'
-run_name =  'pawsey--lr-0.0001--trans-True-Mon-Jan-28-12:51:17-2019'
-#run_name = 'pawsey--lr-0.0001--trans-True-Sat-Jan-26-07:29:31-2019'
+run_name = 'pawsey--lr-0.0001--trans-True-Wed-Jan-30-01:27:21-2019'
+
 
 
 testdice = np.load(save_folder + run_name + '/analysis/test_DICE.npy')
