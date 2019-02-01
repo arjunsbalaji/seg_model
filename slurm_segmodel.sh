@@ -1,6 +1,6 @@
 #!/bin/bash -l
 #SBATCH --nodes=1
-#SBATCH --time=20:00:00
+#SBATCH --time=15:00:00
 #SBATCH --output=octrc%j.out
 #SBATCH --partition=gpuq
 #SBATCH --constraint=p100

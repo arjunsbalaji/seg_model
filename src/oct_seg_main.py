@@ -17,12 +17,12 @@ import sys
 #import numpy as np
 #import shutil
 import time
-import oct_dataset as octdata
+#import oct_dataset as octdata
 total_start_time = time.time()
 
 '''
 'home'
-    main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
+    main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
     save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
 'pawsey'
     main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -34,7 +34,7 @@ total_start_time = time.time()
     warnings.simplefilter('ignore')
 '''
 
-model_args = {'raw size': (512, 512),
+model_args = {'raw size': (320, 320),
               'cropped size': (320,320), # should be tuple. should match random crop arg
               'prim maps':4,
               'prim dims':16,
@@ -49,18 +49,18 @@ model_args = {'raw size': (512, 512),
               'final 2 maps': 1,
               'final 2 dims': 16}
 
-args = {'location': 'home',
+args = {'location': 'pawsey',
         'model_args': model_args,
-        'train': False,
-        'load_checkpoint': False, # for resuming training #path to checkpoints folder in models run_save
+        'train': True,
+        'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 3,
-        'batch_size': 1, #int
+        'epochs': 5,
+        'batch_size': 5, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.3,
@@ -70,7 +70,7 @@ args = {'location': 'home',
         'loss3_alpha': 0.01,
         'checkpoint_save': True}#True}
 
-run_name =  args['location'] + '-' + str(args['init_lr']) + '-' + time.asctime().replace(' ', '-')
+run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
     
 if args['train']:
     import train
@@ -78,12 +78,14 @@ if args['train']:
     #train.train(args, run_name)
     trainer = train.Train(args, run_name)
     trainer.train()
+    model = trainer.model_placeholder
     
 if args['test']:
     import test
     sys.stdout.write('-----------Testing Model-----------' + '\n')
     #test.test(args, run_name)
-    tester = test.Test(args, run_name)
+    
+    tester = test.Test(args, run_name, None)
     tester.test()
     
     

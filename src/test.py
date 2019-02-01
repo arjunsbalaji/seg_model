@@ -23,14 +23,14 @@ torch.manual_seed(7)
 start_time = time.time()
 
 class Test(object):
-    def __init__(self, args, run_name):
+    def __init__(self, args, run_name, trained_model):
         self.args = args
         self.run_name = run_name
         
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
         
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/test_data'
@@ -44,9 +44,9 @@ class Test(object):
         self.data = octdata.OCTDataset(main_data_dir = self.main_data_dir,
                              start_size = args['model_args']['raw size'],
                              input_shape=args['model_args']['cropped size'],
-                             transform = args['transforms'])
-        self.total_epoch = args['epochs']
-        self.batch_size = args['batch_size']
+                             transform = False) #dont want transforms on test set
+        self.total_epoch = 1 #args['epochs']
+        self.batch_size = 1
     
         #set up the loader object. increasing batchsize will increase memory usage.
         self.loader = DataLoader(self.data,
@@ -58,10 +58,17 @@ class Test(object):
                                           model_args = args['model_args'],
                                           uptype = args['uptype'])
         
-        if args['load_model']:
+        
+        if args['train']:
+            loaded_model = torch.load(os.path.join(self.save_spot, 'checkpoint','pytorchmodel.pt'))
+            self.model_placeholder.load_state_dict(loaded_model)
+            #del loaded_model
+        elif args['load_model']:
             loaded_model = torch.load(args['load_model'])
             self.model_placeholder.load_state_dict(loaded_model)
-            del loaded_model
+            #del loaded_model
+        else:
+            sys.stdout.write('ERROR!: need to either train a model or load a model to test.')
             
         self.model_placeholder.to(self.cuda_device)
         self.model_placeholder.eval()
@@ -118,8 +125,7 @@ class Test(object):
                 label_data = sample['label']
                 label_data = label_data.float()
                 label_data = label_data.to(self.cuda_device)
-                label_data = label_data
-                #label_data = torch.unsqueeze(label_data, 1)
+                label_data = torch.unsqueeze(label_data, 0)
                 
                 caps_out, reconstruct = self.model_placeholder(input_data)
                 
@@ -154,7 +160,8 @@ class Test(object):
                     saved_pictures = torch.cat((saved_pictures,
                                                 torch.cat((input_data.data[:,0].unsqueeze(0),
                                                            caps_out.data,
-                                                           label_data.data), 1)))
+                                                           label_data.data,
+                                                           reconstruct.data), 1)))
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
@@ -162,10 +169,10 @@ class Test(object):
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         
         if self.args['save_analysis']:
-            np.save(self.save_spot + '/test_DICE.npy', np.array(self.collection_of_losses1))
-            np.save(self.save_spot + '/test_BCE.npy', np.array(self.collection_of_losses2))
-            np.save(self.save_spot + '/test_MSERecon.npy', np.array(self.collection_of_losses3))
-            np.save(self.save_spot + '/test_pics.npy', saved_pictures.cpu().numpy())
+            np.save(self.save_spot + '/analysis/test_DICE.npy', np.array(self.collection_of_losses1))
+            np.save(self.save_spot + '/analysis/test_BCE.npy', np.array(self.collection_of_losses2))
+            np.save(self.save_spot + '/analysis/test_MSERecon.npy', np.array(self.collection_of_losses3))
+            np.save(self.save_spot + '/analysis/test_pics.npy', saved_pictures.cpu().numpy())
     
         end_time = time.time()
         

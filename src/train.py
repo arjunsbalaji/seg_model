@@ -34,7 +34,7 @@ class Train(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_100'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -69,14 +69,14 @@ class Train(object):
                                                model_args = args['model_args'],
                                                uptype = args['uptype'])
         if args['load_checkpoint']:
-            loaded_model = torch.load(args['load_model'])
+            loaded_model = torch.load(os.path.join(self.args['load_checkpoint'], 'pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
-            del loaded_model
+            #del loaded_model
         
         self.model_placeholder.to(self.cuda_device)
         self.model_placeholder.train()
     
-        self.loss_fn1 = utils.Dice_Loss()
+        self.loss_fn1 = utils.Dice_Loss() 
         #loss_fn2 = torch.nn.BCEWithLogitsLoss()
         self.loss_fn2 = torch.nn.BCELoss()
         self.loss_fn3 = torch.nn.MSELoss()
@@ -107,16 +107,16 @@ class Train(object):
         self.optimizer = torch.optim.Adam(self.model_placeholder.parameters(),
                                      lr=args['init_lr'])
         if args['load_checkpoint']:
-            loaded_optimzer = torch.load(os.path.join(self.save_spot, 'checkpoint', 'optimizer.pt'))
-            self.model_placeholder.load_state_dict(loaded_optimzer)
+            loaded_optimzer = torch.load(os.path.join(self.args['load_checkpoint'], 'optimizer.pt'))
+            self.optimizer.load_state_dict(loaded_optimzer)
             del loaded_optimzer
             
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
                                                     step_size = args['scheduler_step'],
                                                     gamma = args['scheduler_gamma'])
         if args['load_checkpoint']:
-            loaded_scheduler = torch.load(os.path.join(self.save_spot, 'checkpoint', 'scheduler.pt'))
-            self.model_placeholder.load_state_dict(loaded_scheduler)
+            loaded_scheduler = torch.load(os.path.join(self.args['load_checkpoint'], 'scheduler.pt'))
+            self.scheduler.load_state_dict(loaded_scheduler)
             del loaded_scheduler
         
         self.collection_of_losses1 = []
@@ -148,28 +148,35 @@ class Train(object):
                 #input_data = input_data.unsqueeze(1)
                 input_data = input_data.to(self.cuda_device)
                 #input_data = input_data
-                
+                #print(input_data.size(), 'i')
                 
                 label_data = sample['label']
                 label_data = label_data.float()
                 label_data = label_data.to(self.cuda_device)
                 
-                #print(label_data.size())
+                #print(label_data.size(), 'l1')
                 label_data = label_data.squeeze()
-                #print(label_data.size())
-                label_data = torch.unsqueeze(label_data, 0)
-                #print(label_data.size())
-                label_data = torch.unsqueeze(label_data, 1)
+                
+                #make the label size correct depending on batch size!
+                if len(label_data.size()) == 2:
+                    #print(label_data.size(), 'l2')
+                    label_data = torch.unsqueeze(label_data, 0)
+                    #print(label_data.size(), 'l3')
+                    label_data = torch.unsqueeze(label_data, 1)
+                else:
+                    label_data = torch.unsqueeze(label_data, 1)
                 #print(label_data.size())
                 caps_out, reconstruct = self.model_placeholder(input_data)
                 
+                #print(caps_out.size(), reconstruct.size())
                 #label_data = torch.randint(0,2,(1, 3, 128, 128))
                 #print('input size -', input_data.size()) 
                 #print(pred.size(), 'pred size')
                 #print('label size -', label_data.size())
                 
-                lumen_masked = input_data[:,0,:,:] * label_data
+                lumen_masked = (input_data[:,0,:,:].unsqueeze(1)) * label_data
                 
+                #print(lumen_masked.size())
                 
                 
                 self.optimizer.zero_grad()
@@ -198,7 +205,7 @@ class Train(object):
                     time_left = (time.time() - sample_start_time) * ((self.total_epoch * self.total_images) - ((epoch + 1) * self.batch_size * (i+1)))
                     self.time_prediction_list.append(time_left)
                     #note 1-dice loss to get back actual dice similarity coefficient
-                    nth_image = epoch * self.total_images + i
+                    nth_image = int(epoch * self.total_images / self.batch_size + i)
                     sys.stdout.write('Epoch ' + str(epoch + 1) + ' ')
                     sys.stdout.write('| ' + str( (i * self.batch_size)  + 1) + ' ')
                     sys.stdout.write('| ' + 'DSM = ' + str(1 - self.collection_of_losses1[nth_image]) + ' ')
@@ -207,10 +214,18 @@ class Train(object):
                     sys.stdout.write('| ' + 'Time remaining = ' +  str(np.round(time_left, 0)) + ' secs' + '\n')
                     
                     #pad_out = torch.nn.ZeroPad2d((0,0,2,2))
+                    
+                    #save the first sample per batch
+                    input_to_save = input_data.data[0,0,:,:].unsqueeze(0).unsqueeze(0)
+                    caps_to_save = caps_out.data[0,:,:,:].unsqueeze(0)
+                    label_to_save = label_data.data[0,:,:,:].unsqueeze(0)
+                    reconc_to_save = reconstruct.data[0,:,:,:].unsqueeze(0)
+                    
                     saved_pictures = torch.cat((saved_pictures,
-                                                torch.cat((input_data.data[:,0].unsqueeze(0),
-                                                           caps_out.data,
-                                                           label_data.data), 1)))
+                                                torch.cat((input_to_save,
+                                                           caps_to_save,
+                                                           label_to_save,
+                                                           reconc_to_save), 1)))
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
@@ -230,15 +245,16 @@ class Train(object):
             temp_args['transforms'] = str(self.args['transforms'])
             with open(os.path.join(analysis_spot, 'args.json'), 'w') as fp:
                 json.dump(temp_args, fp, indent = 4)
-    
+
+
+        state_spot = os.path.join(self.save_spot, 'checkpoint')
+        os.mkdir(state_spot)
         if self.args['checkpoint_save']:
-            state_spot = os.path.join(self.save_spot, 'checkpoint')
-            os.mkdir(state_spot)
             torch.save(self.model_placeholder.state_dict(), state_spot + '/pytorchmodel.pt')
             torch.save(self.optimizer.state_dict(), state_spot + '/optimizer.pt')
             torch.save(self.scheduler.state_dict(), state_spot + '/scheduler.pt')
         else:
-            torch.save(self.model_placeholder.state_dict(), self.save_spot + '/pytorchmodel.pt')
+            torch.save(self.model_placeholder.state_dict(), self.state_spot + '/pytorchmodel.pt')
     
         end_time = time.time()
         

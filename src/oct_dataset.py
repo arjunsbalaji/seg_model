@@ -15,6 +15,7 @@ from torch.utils.data import Dataset
 from sklearn import preprocessing
 from skimage.transform import resize
 from torchvision import transforms
+import matplotlib.pyplot as plt
 
 ###############################################################################
 
@@ -87,19 +88,18 @@ class OCTDataset(Dataset):
         self.pcrop = np.random.rand()
         self. phflip = np.random.rand()
         self.pvflip = np.random.rand()
+        self.pafftrans = np.random.rand()
         
     def transformation(self, input_data, label):
         _, h, w = input_data.size()
         hnew, wnew = self.input_shape
+        label = label.unsqueeze(0)
         combined = torch.cat((input_data, label), 0)
         combined = transforms.functional.to_pil_image(combined)
         #label = transforms.functional.to_pil_image(label)
         #sys.stdout.write('after pil')
         #random crop of startsize
-        if self.pcrop > 0.00000:
-            i = np.random.randint(0, h - hnew)
-            left = np.random.randint(0, w - wnew)
-            combined = transforms.functional.crop(combined, i, left, hnew, wnew)
+
             #label = transforms.functional.crop(label, i, left, hnew, wnew)
         #sys.stdout.write('after crop')    
         if self.phflip > 0.5:
@@ -110,12 +110,48 @@ class OCTDataset(Dataset):
             combined = transforms.functional.vflip(combined)
             #label = transforms.functional.vflip(label)
         #sys.stdout.write('after vflip')
+        '''
+        if self.pafftrans > 0.01:
+            angle = np.random.randint(-175, 175)
+            #shear = np.random.randint(-175, 175)
+            combined = transforms.functional.affine(combined,
+                                                    translate = (0,0), 
+                                                    angle=angle,
+                                                    scale = 1,
+                                                    shear=0)
+            '''
+        if self.pcrop > 0:
+            i = np.random.randint(0, h - hnew)
+            left = np.random.randint(0, w - wnew)
+            combined = transforms.functional.crop(combined, i, left, hnew, wnew)
+            
         combined = transforms.functional.to_tensor(combined)
         #label = transforms.functional.to_tensor(label)
         #sys.stdout.write('after done')
         
         #input_data = transforms.functional.normalize(input_data, [0,0,0], [1,1,1])
         return combined[:-1,:,:], combined[-1].unsqueeze(0)
+        
+    def visualise(self, idx):
+        
+        sample = self.__getitem__(idx)
+        #print(sample['input'].size())
+        #print(sample['label'].size())
+        input_data = sample['input'].cpu().numpy()[0,:,:]
+        label_data = sample['label'].cpu().numpy()[0,:,:]
+        
+        f, (axin, axl) = plt.subplots(1,2, sharey=True)
+        f.subplots_adjust(hspace=0.3)
+        plt.tight_layout()
+        
+        #plot image
+        image = axin.imshow(input_data,
+                            aspect = 'equal')
+        f.colorbar(image, ax=axin, orientation='vertical', fraction = 0.05)
+        
+        axl.imshow(label_data,
+                   aspect = 'equal')
+        plt.show()
         
         
     def __getitem__(self, idx):
@@ -153,15 +189,34 @@ class OCTDataset(Dataset):
         #og = preprocessing.MinMaxScaler(og)
 
         #print(image.shape)
-        sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
-                                      torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
-                                      torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
-                  'label': torch.tensor(label, dtype=torch.float32).unsqueeze(0),
-                  'case_name': name}
+            sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
+                      'label': torch.tensor(label, dtype=torch.float32),
+                      'case_name': name}
         
         
         if self.transform:
             #sample = self.transform(sample)
+            ysize = self.start_size[0] + 20
+            xsize = self.start_size[1] + 20
+            
+            image = resize(image, output_shape = (ysize, xsize))
+            double_filter = resize(double_filter, output_shape = (ysize, xsize))
+            long_grad = resize(long_grad, output_shape = (ysize, xsize))
+        
+            label = resize(label, output_shape = (ysize, xsize))
+            
+            image = preprocessing.scale(image)
+            #og = preprocessing.MinMaxScaler(og)
+
+            #print(image.shape)
+            sample = {'input': torch.cat((torch.tensor(image, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(double_filter, dtype=torch.float32).unsqueeze(0),
+                                          torch.tensor(long_grad, dtype=torch.float32).unsqueeze(0))),
+                      'label': torch.tensor(label, dtype=torch.float32),
+                      'case_name': name}
+            
             input_data, label_data = self.transformation(sample['input'], sample['label'])
             sample = {'input': input_data,
                       'label': label_data,
@@ -175,3 +230,4 @@ class OCTDataset(Dataset):
         return len(self.name_list)
 
 ###############################################################################
+        
