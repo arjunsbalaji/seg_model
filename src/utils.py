@@ -5,15 +5,6 @@ Created on Fri Dec 21 15:07:19 2018
 
 @author: arjunbalaji
 """
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 19 16:45:12 2018
-
-@author: arjun
-"""
-
 #caps net idea for oct lumen profiler 
 #hi
 #this iteration of code runs a conv capsule idea
@@ -46,11 +37,14 @@ class Get_Primary_Caps(torch.nn.Module):
     caps1_n_dims dimensional vector. there is work to be done here so that 
     the numbers all make themselves work. at the moment you have to carefully 
     check each one to make sure the model runs"""
-    def __init__(self, caps1_n_maps,
+    def __init__(self,
+                 input_channels,
+                 caps1_n_maps,
                  caps1_caps_grid_ydim,
                  caps1_caps_grid_xdim,
                  caps1_n_dims):
         super(Get_Primary_Caps, self).__init__()
+        self.input_channels = input_channels
         self.caps1_n_maps = caps1_n_maps 
         self.caps1_caps_grid_ydim = caps1_caps_grid_ydim
         self.caps1_caps_grid_xdim = caps1_caps_grid_xdim
@@ -62,7 +56,7 @@ class Get_Primary_Caps(torch.nn.Module):
         #this is so important dont get it wrong 
         #O = (W - K - 2P)/S +1
         
-        conv1_parameters = {'i': 3, 'o': 32, 'k': 5, 's': 2, 'p':2}
+        conv1_parameters = {'i': self.input_channels, 'o': 32, 'k': 5, 's': 2, 'p':2}
         self.conv1 = torch.nn.Conv2d(in_channels=conv1_parameters['i'],
                                      out_channels=conv1_parameters['o'],
                                      kernel_size=conv1_parameters['k'],
@@ -545,12 +539,14 @@ class Reconstruction_Layer(torch.nn.Module):
     def __init__(self, 
                  batch_size,
                  capsin_n_maps,
-                 capsin_n_dims):
+                 capsin_n_dims,
+                 reconstruct_channels):
         super(Reconstruction_Layer, self).__init__()
         
         self.batch_size = batch_size
         self.capsin_n_dims = capsin_n_dims
         self.capsin_n_maps = capsin_n_maps 
+        self.reconstruct_channels = reconstruct_channels
         self.relu = torch.nn.ReLU()
         self.sigmoid = torch.nn.Sigmoid()
         
@@ -577,7 +573,7 @@ class Reconstruction_Layer(torch.nn.Module):
                                      padding = self.conv2_params['p'])
         
         self.conv3_params = {'i':int(self.conv2_params['o']),
-                             'o':1,
+                             'o':self.reconstruct_channels,
                              'k':1,
                              's':1,
                              'p':0}
@@ -627,13 +623,16 @@ class CapsNet(torch.nn.Module):
         self.args = args
         self.model_args = model_args
         self.uptype = uptype
+        
         if self.args['transforms']:
             caps1_ygrid = self.model_args['cropped size'][0]
             caps1_xgrid = self.model_args['cropped size'][1]
         else:
-            caps1_ygrid = self.model_args['raw size'][0]
-            caps1_xgrid = self.model_args['raw size'][1]            
-        self.get_prim_caps = Get_Primary_Caps(caps1_n_maps = self.model_args['prim maps'],
+            caps1_ygrid = self.model_args['start size'][0]
+            caps1_xgrid = self.model_args['start size'][1]      
+            
+        self.get_prim_caps = Get_Primary_Caps(input_channels=self.model_args['input channels'],
+                                              caps1_n_maps = self.model_args['prim maps'],
                                               caps1_caps_grid_ydim = int(caps1_ygrid / 4),
                                               caps1_caps_grid_xdim = int(caps1_xgrid / 4),
                                               caps1_n_dims = self.model_args['prim dims'])
@@ -861,7 +860,8 @@ class CapsNet(torch.nn.Module):
 
         self.reconstruct = Reconstruction_Layer(self.batch_size,
                                                 capsin_n_maps = self.model_args['final 2 maps'],
-                                                capsin_n_dims = self.model_args['final 2 dims'])
+                                                capsin_n_dims = self.model_args['final 2 dims'],
+                                                reconstruct_channels=self.model_args['recon channels'])
         
     def forward(self, x):
         x = self.get_prim_caps(x)
