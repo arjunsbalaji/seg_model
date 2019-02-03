@@ -54,7 +54,7 @@ model_args = {'raw size': (256, 256),
 args = {'location': 'pawsey',
         'model_args': model_args,
         'train': True,
-        'load_checkpoint': '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/pawsey--lr-0.0001--trans-True-Sun-Feb--3-06:26:06-2019/checkpoint/',#False,#False, # for resuming training #path to checkpoints folder in models run_save
+        'load_checkpoint':False, #False, # for resuming training #path to checkpoints folder in models run_save
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
