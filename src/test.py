@@ -64,7 +64,7 @@ class Test(object):
             loaded_model = torch.load(os.path.join(self.save_spot, 'checkpoint','pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
             #del loaded_model
-            sys.stdout.write('TestModel: selected model that was jus trained+ '\n')
+            sys.stdout.write('TestModel: selected model that was jus trained' + '\n')
         elif args['load_model']:
             loaded_model = torch.load(args['load_model'])
             self.model_placeholder.load_state_dict(loaded_model)

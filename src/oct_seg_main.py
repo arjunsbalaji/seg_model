@@ -73,7 +73,9 @@ args = {'location': 'pawsey',
         'checkpoint_save': True}#True}
 
 run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
-    
+   
+
+sys.stdout.write('Run started at' + time.asctime() + '\n') 
 if args['train']:
     import train
     sys.stdout.write('-----------Training Model-----------' + '\n')
