@@ -9,24 +9,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
+#save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
 save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
 
-#run_name = 'capsnetupsample-pawsey-Tue-Jan-15-06:45:55-2019'
-#run_name = 'capsnetupsample-pawsey-Fri-Jan-18-10:43:32-2019'
-#run_name = 'pawsey-0.0001-Fri-Jan-25-04:20:00-2019'
-run_name =  'pawsey--lr-0.0001--trans-True-Mon-Jan-28-12:51:17-2019'
-#run_name = 'pawsey--lr-0.0001--trans-True-Sat-Jan-26-07:29:31-2019'
+
+run_name = 'pawsey--lr-0.0001--trans-True-Sun-Feb--3-06:26:06-2019'
 
 testdice = np.load(save_folder + run_name + '/analysis/test_DICE.npy')
 testbce = np.load(save_folder + run_name + '/analysis/test_BCE.npy')
 testrecon = np.load(save_folder + run_name + '/analysis/test_MSERecon.npy')
 testpics = np.load(save_folder + run_name + '/analysis/test_pics.npy')
 
-traindice = np.load(save_folder + run_name + '/analysis/DICE.npy')
-trainbce = np.load(save_folder + run_name + '/analysis/BCE.npy')
-trainrecon = np.load(save_folder + run_name + '/analysis/MSERecon.npy')
-trainpics = np.load(save_folder + run_name + '/analysis/pics.npy')
+traindice = np.load(save_folder + run_name + '/analysis/train_DICE.npy')
+trainbce = np.load(save_folder + run_name + '/analysis/train_BCE.npy')
+trainrecon = np.load(save_folder + run_name + '/analysis/train_MSERecon.npy')
+trainpics = np.load(save_folder + run_name + '/analysis/train_pics.npy')
 
 class DataAnalysis(object):
     def __init__(self, a):
