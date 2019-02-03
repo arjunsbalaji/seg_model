@@ -31,7 +31,7 @@ class Test(object):
         
         if args['location'] == 'home':    
             #self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
-            self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data'
+            #self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/test_data'
@@ -64,12 +64,14 @@ class Test(object):
             loaded_model = torch.load(os.path.join(self.save_spot, 'checkpoint','pytorchmodel.pt'))
             self.model_placeholder.load_state_dict(loaded_model)
             #del loaded_model
+            sys.stdout.write('TestModel: selected model that was jus trained+ '\n')
         elif args['load_model']:
             loaded_model = torch.load(args['load_model'])
             self.model_placeholder.load_state_dict(loaded_model)
+            sys.stdout.write('TestModel: selected model that was jus trained' + '\n')
             #del loaded_model
         else:
-            sys.stdout.write('ERROR!: need to either train a model or load a model to test.')
+            sys.stdout.write('ERROR!: need to either train a model or load a model to test.' + '\n')
             
         self.model_placeholder.to(self.cuda_device)
         self.model_placeholder.eval()
@@ -166,7 +168,7 @@ class Test(object):
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
-                break
+                #break
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         
         if self.args['save_analysis']:

@@ -230,7 +230,7 @@ class Train(object):
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
-                break
+                #break
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         #with open(os.path.join(save_spot, 'run_name.txt'), "w") as text_file:
         #    text_file.write(run_name)
@@ -238,10 +238,10 @@ class Train(object):
         if self.args['save_analysis']:
             analysis_spot = os.path.join(self.save_spot, 'analysis')
             os.mkdir(analysis_spot)
-            np.save(analysis_spot + '/DICE.npy', np.array(self.collection_of_losses1))
-            np.save(analysis_spot + '/BCE.npy', np.array(self.collection_of_losses2))
-            np.save(analysis_spot + '/MSERecon.npy', np.array(self.collection_of_losses3))
-            np.save(analysis_spot + '/pics.npy', saved_pictures.cpu().numpy())
+            np.save(analysis_spot + '/train_DICE.npy', np.array(self.collection_of_losses1))
+            np.save(analysis_spot + '/train_BCE.npy', np.array(self.collection_of_losses2))
+            np.save(analysis_spot + '/train_MSERecon.npy', np.array(self.collection_of_losses3))
+            np.save(analysis_spot + '/train_pics.npy', saved_pictures.cpu().numpy())
             temp_args = self.args.copy()
             temp_args['transforms'] = str(self.args['transforms'])
             with open(os.path.join(analysis_spot, 'args.json'), 'w') as fp:
