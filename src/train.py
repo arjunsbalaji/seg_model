@@ -34,7 +34,8 @@ class Train(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
+            #self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
+            self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -53,7 +54,7 @@ class Train(object):
     
         self.data = octdata.OCTDataset(main_data_dir = self.main_data_dir,
                                        start_size = args['model_args']['raw size'],
-                                       input_shape=args['model_args']['cropped size'],
+                                       cropped_size=args['model_args']['cropped size'],
                                        transform = args['transforms'])
         
         self.total_epoch = args['epochs']
@@ -229,7 +230,7 @@ class Train(object):
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
-                
+                #break
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         #with open(os.path.join(save_spot, 'run_name.txt'), "w") as text_file:
         #    text_file.write(run_name)
@@ -237,10 +238,10 @@ class Train(object):
         if self.args['save_analysis']:
             analysis_spot = os.path.join(self.save_spot, 'analysis')
             os.mkdir(analysis_spot)
-            np.save(analysis_spot + '/DICE.npy', np.array(self.collection_of_losses1))
-            np.save(analysis_spot + '/BCE.npy', np.array(self.collection_of_losses2))
-            np.save(analysis_spot + '/MSERecon.npy', np.array(self.collection_of_losses3))
-            np.save(analysis_spot + '/pics.npy', saved_pictures.cpu().numpy())
+            np.save(analysis_spot + '/train_DICE.npy', np.array(self.collection_of_losses1))
+            np.save(analysis_spot + '/train_BCE.npy', np.array(self.collection_of_losses2))
+            np.save(analysis_spot + '/train_MSERecon.npy', np.array(self.collection_of_losses3))
+            np.save(analysis_spot + '/train_pics.npy', saved_pictures.cpu().numpy())
             temp_args = self.args.copy()
             temp_args['transforms'] = str(self.args['transforms'])
             with open(os.path.join(analysis_spot, 'args.json'), 'w') as fp:
@@ -254,7 +255,7 @@ class Train(object):
             torch.save(self.optimizer.state_dict(), state_spot + '/optimizer.pt')
             torch.save(self.scheduler.state_dict(), state_spot + '/scheduler.pt')
         else:
-            torch.save(self.model_placeholder.state_dict(), self.state_spot + '/pytorchmodel.pt')
+            torch.save(self.model_placeholder.state_dict(), state_spot + '/pytorchmodel.pt')
     
         end_time = time.time()
         
