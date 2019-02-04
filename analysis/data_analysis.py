@@ -8,12 +8,11 @@ Created on Tue Jan 15 15:53:52 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
+save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
+#save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
 
-#save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
-save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
 
-
-run_name = 'pawsey--lr-0.0001--trans-True-Sun-Feb--3-06:26:06-2019'
+run_name = 'pawsey--lr-0.0001--trans-True-Sun-Feb--3-11:21:27-2019'
 
 testdice = np.load(save_folder + run_name + '/analysis/test_DICE.npy')
 testbce = np.load(save_folder + run_name + '/analysis/test_BCE.npy')

@@ -111,10 +111,23 @@ class Train(object):
             loaded_optimzer = torch.load(os.path.join(self.args['load_checkpoint'], 'optimizer.pt'))
             self.optimizer.load_state_dict(loaded_optimzer)
             del loaded_optimzer
-            
+        
+        '''
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
                                                     step_size = args['scheduler_step'],
                                                     gamma = args['scheduler_gamma'])
+        '''
+        
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                                    mode='min',
+                                                                    factor=0.5,
+                                                                    patience=1,
+                                                                    verbose=False,
+                                                                    threshold=0.0001,
+                                                                    threshold_mode='rel',
+                                                                    cooldown=0,
+                                                                    min_lr=0,
+                                                                    eps=1e-08)
         if args['load_checkpoint']:
             loaded_scheduler = torch.load(os.path.join(self.args['load_checkpoint'], 'scheduler.pt'))
             self.scheduler.load_state_dict(loaded_scheduler)
