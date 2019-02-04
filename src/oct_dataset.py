@@ -284,8 +284,10 @@ class SPNoise(object):
         
         #print(multiplier)
         
+        multiplier = np.sqrt(multiplier ** 2 ) + 2
+        
         #*2 coz oct data is scaled to 1
-        noise =  np.random.randint(0, 2 * multiplier, size=x.shape)    
+        noise =  np.random.randint(0, multiplier, size=x.shape)    
         return x + noise
 ###############################################################################
 

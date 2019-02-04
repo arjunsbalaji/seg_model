@@ -150,9 +150,9 @@ class Train(object):
         for epoch in range(self.total_epoch):
         
             show_progress = 0
-            self.scheduler.step()
-            sys.stdout.write('\n')
-            sys.stdout.write('Learning rate for epoch ' + str(epoch + 1) + ' is ' + str(self.scheduler.get_lr()) + '\n')
+            #self.scheduler.step()
+            #sys.stdout.write('\n')
+            #sys.stdout.write('Learning rate for epoch ' + str(epoch + 1) + ' is ' + str(self.scheduler.get_lr()) + '\n')
         
             for i, sample in enumerate(self.loader):
                 sample_start_time = time.time()
@@ -200,7 +200,7 @@ class Train(object):
                 loss1 = self.loss_fn1(caps_out, label_data) #this is for my custom dice loss
                 loss2 = self.loss_fn2(caps_out, label_data.float())
                 loss3 = self.loss_fn3(reconstruct, lumen_masked)
-                
+                self.scheduler.step(self.args['loss1_alpha'] * loss1 + self.args['loss2_alpha'] * loss2)
                 (self.args['loss1_alpha'] * loss1 + self.args['loss2_alpha'] * loss2 + self.args['loss3_alpha'] * loss3).backward()
                 #loss2.backward()
                 
