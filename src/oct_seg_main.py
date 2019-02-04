@@ -53,12 +53,8 @@ model_args = {'raw size': (256, 256),
 
 args = {'location': 'pawsey',
         'model_args': model_args,
-        'train': True,
-<<<<<<< HEAD
-        'load_checkpoint':False, #False, # for resuming training #path to checkpoints folder in models run_save
-=======
-        'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_save
->>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
+        'train': True, #False, # for resuming training #path to checkpoints folder in models run_save
+        'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_sav>>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
         'test': True,
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
