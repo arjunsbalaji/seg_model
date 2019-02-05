@@ -34,8 +34,8 @@ class Train(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
-            #self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
-            self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
+            #self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data/'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -112,12 +112,12 @@ class Train(object):
             self.optimizer.load_state_dict(loaded_optimzer)
             del loaded_optimzer
         
-        '''
+        
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
                                                     step_size = args['scheduler_step'],
                                                     gamma = args['scheduler_gamma'])
-        '''
         
+        '''
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
                                                                     mode='min',
                                                                     factor=0.5,
@@ -128,6 +128,7 @@ class Train(object):
                                                                     cooldown=0,
                                                                     min_lr=0,
                                                                     eps=1e-08)
+        '''
         if args['load_checkpoint']:
             loaded_scheduler = torch.load(os.path.join(self.args['load_checkpoint'], 'scheduler.pt'))
             self.scheduler.load_state_dict(loaded_scheduler)
@@ -150,9 +151,9 @@ class Train(object):
         for epoch in range(self.total_epoch):
         
             show_progress = 0
-            #self.scheduler.step()
-            #sys.stdout.write('\n')
-            #sys.stdout.write('Learning rate for epoch ' + str(epoch + 1) + ' is ' + str(self.scheduler.get_lr()) + '\n')
+            self.scheduler.step()
+            sys.stdout.write('\n')
+            sys.stdout.write('Learning rate for epoch ' + str(epoch + 1) + ' is ' + str(self.scheduler.get_lr()) + '\n')
         
             for i, sample in enumerate(self.loader):
                 sample_start_time = time.time()
@@ -200,7 +201,7 @@ class Train(object):
                 loss1 = self.loss_fn1(caps_out, label_data) #this is for my custom dice loss
                 loss2 = self.loss_fn2(caps_out, label_data.float())
                 loss3 = self.loss_fn3(reconstruct, lumen_masked)
-                self.scheduler.step(self.args['loss1_alpha'] * loss1 + self.args['loss2_alpha'] * loss2)
+                #self.scheduler.step(self.args['loss1_alpha'] * loss1 + self.args['loss2_alpha'] * loss2)
                 (self.args['loss1_alpha'] * loss1 + self.args['loss2_alpha'] * loss2 + self.args['loss3_alpha'] * loss3).backward()
                 #loss2.backward()
                 

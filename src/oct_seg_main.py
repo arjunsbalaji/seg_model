@@ -61,13 +61,13 @@ args = {'location': 'pawsey',
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 100,
+        'epochs': 75,
         'batch_size': 10, #int
         'uptype': 'upsample', #or deconv
         'init_lr':0.0001,
-        'scheduler_gamma': 0.3,
-        'scheduler_step': 1,
-        'loss1_alpha': 0.05,
+        'scheduler_gamma': 0.8,
+        'scheduler_step': 5,
+        'loss1_alpha': 0.1,
         'loss2_alpha': 1,
         'loss3_alpha': 0.01,
         'checkpoint_save': True}#True}
@@ -75,7 +75,7 @@ args = {'location': 'pawsey',
 run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
    
 
-sys.stdout.write('Run started at' + time.asctime() + '\n') 
+sys.stdout.write('Run started at ' + time.asctime() + '\n') 
 if args['train']:
     import train
     sys.stdout.write('-----------Training Model-----------' + '\n')
