@@ -63,7 +63,7 @@ args = {'location': 'pawsey',
         'transforms': True, #must be set to true!
         'epochs': 75,
         'batch_size': 10, #int
-        'uptype': 'upsample', #or deconv
+        'uptype': 'deconv', #or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,
         'scheduler_step': 5,
