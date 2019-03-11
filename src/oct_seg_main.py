@@ -14,7 +14,7 @@ Created on Fri Jan 18 22:46:48 2019
 #import oct_test
 #import os
 import sys
-#import numpy as np
+import numpy as np
 #import shutil
 import time
 #import oct_dataset as octdata
@@ -91,8 +91,12 @@ if args['test']:
     
     tester = test.Test(args, run_name, None)
     tester.test()
+    dice_mean = np.mean(tester.collection_of_losses1)
+    dice_max = np.max(tester.collection_of_losses1)
+    dice_min = np.min(tester.collection_of_losses1)
+    dice_std = np.std(tester.collection_of_losses1)
     
-    
+    sys.stdout.write('Dice Metrics: mean-' + dice_mean + ' max-' + dice_max + ' min-' + dice_min + ' std-' + dice_std + '\n')
 total_end_time = time.time()
 
 sys.stdout.write('Total Completion Time : ' + str(total_end_time-total_start_time) + ' secs')
