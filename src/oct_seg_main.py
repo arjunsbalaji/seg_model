@@ -51,7 +51,7 @@ model_args = {'raw size': (256, 256),
               'final 2 dims': 16,              
               'recon channels': 1}
 
-args = {'location': 'pawsey',
+args = {'location': 'home',
         'model_args': model_args,
         'train': True, #False, # for resuming training #path to checkpoints folder in models run_save
         'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_sav>>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
@@ -59,18 +59,18 @@ args = {'location': 'pawsey',
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
         'show_percentage': 10,
-        'save_analysis':True, #True,
+        'save_analysis':False, #True,
         'transforms': True, #must be set to true!
-        'epochs': 75,
+        'epochs': 1,
         'batch_size': 10, #int
-        'uptype': 'deconv', #or deconv
+        'uptype': 'upsample', #upsample or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,
         'scheduler_step': 5,
         'loss1_alpha': 0.1,
         'loss2_alpha': 1,
         'loss3_alpha': 0.01,
-        'checkpoint_save': True}#True}
+        'checkpoint_save': False}#True}
 
 run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
    
@@ -96,7 +96,7 @@ if args['test']:
     dice_min = np.min(tester.collection_of_losses1)
     dice_std = np.std(tester.collection_of_losses1)
     
-    sys.stdout.write('Dice Metrics: mean-' + dice_mean + ' max-' + dice_max + ' min-' + dice_min + ' std-' + dice_std + '\n')
+    sys.stdout.write('Dice Metrics: mean=' + str(1 - dice_mean) + ' max=' + str(1 - dice_max) + ' min=' + str(1 - dice_min) + ' std=' + str(dice_std) + '\n')
 total_end_time = time.time()
 
 sys.stdout.write('Total Completion Time : ' + str(total_end_time-total_start_time) + ' secs')

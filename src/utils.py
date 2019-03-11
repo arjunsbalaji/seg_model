@@ -866,66 +866,68 @@ class CapsNet(torch.nn.Module):
     def forward(self, x):
         x = self.get_prim_caps(x)
         x_prim = x
-        #print(x.size(),'0')
+        print(x.size(),'0')
         self.x_prim = x_prim
         #print('##########################FINISHED PRIM#######################')
         x = self.get_abstract_caps1(x)
         
-        #print(x.size(), '1')
+        print(x.size(), '1')
         x = self.get_abstract_caps1a(x)
         x_1 = x
-        #print(x.size(), '1')
+        print(x.size(), '1a')
         self.x_1 = x_1
         #print('##########################FINISHED 1#######################')
         
         x = self.get_abstract_caps2(x)
+        print(x.size(), '2')
         x = self.get_abstract_caps2a(x)
         x_2 = x
-        #print(x.size(), '2')
+        print(x.size(), '2a')
         self.x_2 = x_2
         
         x = self.get_abstract_caps3(x)
+        print(x.size(), '3')
         x = self.get_abstract_caps3a(x)
         x_3 = x
-        #print(x.size(), '3')
+        print(x.size(), '3a')
         self.x_3 = x_3
              
         x = self.get_abstract_caps_bot(x)
         #x_bot = x
-        #print(x.size(), 'bot')
+        print(x.size(), 'bot')
         
         #gotta be careful on the way up there are double maps
         x = torch.cat((x, x_3), 1)
         
         x = self.get_abstract_caps3u(x)
-        #print(x.size(), '3u')
+        print(x.size(), '3u')
         x = self.get_abstract_caps3ua(x)
-        #print(x.size(), '3ua')
+        print(x.size(), '3ua')
         
 
         x = torch.cat((x, x_2), 1)
         x = self.get_abstract_caps2u(x)
-        #print(x.size(), '2u')
+        print(x.size(), '2u')
         x = self.get_abstract_caps2ua(x)
-        #print(x.size(), '2ua')
+        print(x.size(), '2ua')
         
         x = torch.cat((x, x_1), 1)
         x = self.get_abstract_caps1u(x)
-        #print(x.size(), '1u')
+        print(x.size(), '1u')
         x = self.get_abstract_caps1ua(x)
-        #print(x.size(), '1ua')
+        print(x.size(), '1ua')
 
         x = torch.cat((x, x_prim), 1)
         x = self.get_abstract_caps_final1(x)
-        #print(x.size(), 'final1')
+        print(x.size(), 'final1')
 
         x = self.get_abstract_caps_final2(x)
-        #print(x.size(), 'final2')
+        print(x.size(), 'final2')
         reconstruct = self.reconstruct(x)
         
         x = safe_norm(x)
         
-        
+        print(x.size(), 'last')
         return x, reconstruct
 
 
