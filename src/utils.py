@@ -415,8 +415,11 @@ class Get_Abstract_Caps_Up(torch.nn.Module):
 
         
         if self.uptype == 'deconv':
-            self.new_hl = (self.old_h-1)*self.stride + self.y_kernel - 2*pady + self.output_padding[0]
-            self.new_wl = (self.old_w-1)*self.stride + self.x_kernel - 2*padx + self.output_padding[1]
+            '''
+            HUGELY IMPORTANT TO GET DECONV TO WORK WE ADD 1 to the end
+            '''
+            self.new_hl = (self.old_h-1)*self.stride + self.y_kernel - 2*pady + self.output_padding[0] 
+            self.new_wl = (self.old_w-1)*self.stride + self.x_kernel - 2*padx + self.output_padding[1] 
     
             self.capsconv2d_up = torch.nn.ConvTranspose2d(in_channels = self.capsin_n_maps*self.capsin_n_dims,
                                           out_channels = self.capsout_n_maps*self.capsout_n_dims,
@@ -735,7 +738,12 @@ class CapsNet(torch.nn.Module):
                                                          padding = 0,
                                                          across=True)
         capsbot_params = self.get_abstract_caps_bot.infer_shapes()
-
+        
+        if self.uptype == 'upsample':
+            upa_outputpadding = (0,0)
+        elif self.uptype == 'deconv':
+            upa_outputpadding = (1,1)
+            
         self.get_abstract_caps3u = Get_Abstract_Caps_Up(self.batch_size,
                                                          capsin_n_maps = capsbot_params['caps maps'] + caps3_params['caps maps'],
                                                          capsin_n_dims = capsbot_params['caps dims'],
@@ -747,7 +755,7 @@ class CapsNet(torch.nn.Module):
                                                          x_kernel = 5,
                                                          stride = 2,
                                                          padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         output_padding=upa_outputpadding,
                                                          uptype = self.uptype,
                                                          across=True)
         caps3u_params = self.get_abstract_caps3u.infer_shapes()
@@ -777,7 +785,7 @@ class CapsNet(torch.nn.Module):
                                                          x_kernel = 5,
                                                          stride = 2,
                                                          padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         output_padding=upa_outputpadding,
                                                          uptype = self.uptype,
                                                          across=True)
         caps2u_params = self.get_abstract_caps2u.infer_shapes()
@@ -807,7 +815,7 @@ class CapsNet(torch.nn.Module):
                                                          x_kernel = 5,
                                                          stride = 2,
                                                          padding = (2,2),
-                                                         output_padding=(0,0),
+                                                         output_padding=upa_outputpadding,
                                                          uptype = self.uptype,
                                                          across=True)
         caps1u_params = self.get_abstract_caps1u.infer_shapes()
@@ -838,7 +846,7 @@ class CapsNet(torch.nn.Module):
                                                          x_kernel = 7,
                                                          stride = 2,
                                                          padding = (3,3),
-                                                         output_padding=(0,0),
+                                                         output_padding=upa_outputpadding,
                                                          uptype = self.uptype,
                                                          across=True)
         capsfinal1_params = self.get_abstract_caps_final1.infer_shapes()
@@ -854,7 +862,7 @@ class CapsNet(torch.nn.Module):
                                                          x_kernel = 7,
                                                          stride = 2,
                                                          padding = (3,3),
-                                                         output_padding=(0,0),
+                                                         output_padding=upa_outputpadding,
                                                          uptype = self.uptype,
                                                          across=False)
 
@@ -866,68 +874,68 @@ class CapsNet(torch.nn.Module):
     def forward(self, x):
         x = self.get_prim_caps(x)
         x_prim = x
-        print(x.size(),'0')
+        #print(x.size(),'0')
         self.x_prim = x_prim
         #print('##########################FINISHED PRIM#######################')
         x = self.get_abstract_caps1(x)
         
-        print(x.size(), '1')
+        #print(x.size(), '1')
         x = self.get_abstract_caps1a(x)
         x_1 = x
-        print(x.size(), '1a')
+        #print(x.size(), '1a')
         self.x_1 = x_1
         #print('##########################FINISHED 1#######################')
         
         x = self.get_abstract_caps2(x)
-        print(x.size(), '2')
+        #print(x.size(), '2')
         x = self.get_abstract_caps2a(x)
         x_2 = x
-        print(x.size(), '2a')
+        #print(x.size(), '2a')
         self.x_2 = x_2
         
         x = self.get_abstract_caps3(x)
-        print(x.size(), '3')
+        #print(x.size(), '3')
         x = self.get_abstract_caps3a(x)
         x_3 = x
-        print(x.size(), '3a')
+        #print(x.size(), '3a')
         self.x_3 = x_3
              
         x = self.get_abstract_caps_bot(x)
         #x_bot = x
-        print(x.size(), 'bot')
+        #print(x.size(), 'bot')
         
         #gotta be careful on the way up there are double maps
         x = torch.cat((x, x_3), 1)
         
         x = self.get_abstract_caps3u(x)
-        print(x.size(), '3u')
+        #print(x.size(), '3u')
         x = self.get_abstract_caps3ua(x)
-        print(x.size(), '3ua')
+        #print(x.size(), '3ua')
         
 
         x = torch.cat((x, x_2), 1)
         x = self.get_abstract_caps2u(x)
-        print(x.size(), '2u')
+        #print(x.size(), '2u')
         x = self.get_abstract_caps2ua(x)
-        print(x.size(), '2ua')
+        #print(x.size(), '2ua')
         
         x = torch.cat((x, x_1), 1)
         x = self.get_abstract_caps1u(x)
-        print(x.size(), '1u')
+        #print(x.size(), '1u')
         x = self.get_abstract_caps1ua(x)
-        print(x.size(), '1ua')
+        #print(x.size(), '1ua')
 
         x = torch.cat((x, x_prim), 1)
         x = self.get_abstract_caps_final1(x)
-        print(x.size(), 'final1')
+        #print(x.size(), 'final1')
 
         x = self.get_abstract_caps_final2(x)
-        print(x.size(), 'final2')
+        #print(x.size(), 'final2')
         reconstruct = self.reconstruct(x)
         
         x = safe_norm(x)
         
-        print(x.size(), 'last')
+        #print(x.size(), 'last')
         return x, reconstruct
 
 

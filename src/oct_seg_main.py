@@ -62,7 +62,7 @@ args = {'location': 'home',
         'save_analysis':False, #True,
         'transforms': True, #must be set to true!
         'epochs': 1,
-        'batch_size': 10, #int
+        'batch_size': 1, #int
         'uptype': 'upsample', #upsample or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,
