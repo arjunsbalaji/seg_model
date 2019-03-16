@@ -51,7 +51,7 @@ model_args = {'raw size': (256, 256),
               'final 2 dims': 16,              
               'recon channels': 1}
 
-args = {'location': 'home',
+args = {'location': 'pawsey',
         'model_args': model_args,
         'train': True, #False, # for resuming training #path to checkpoints folder in models run_save
         'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_sav>>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
@@ -59,7 +59,7 @@ args = {'location': 'home',
         'load_model': False,# False or path to model. Note that this is only for testing. if you want to load a model to train, you MUST load a whole checkpoint.
         'display_text':True,
         'show_percentage': 10,
-        'save_analysis':False, #True,
+        'save_analysis':True, #True,
         'transforms': True, #must be set to true!
         'epochs': 1,
         'batch_size': 1, #int
@@ -70,7 +70,7 @@ args = {'location': 'home',
         'loss1_alpha': 0.1,
         'loss2_alpha': 1,
         'loss3_alpha': 0.01,
-        'checkpoint_save': False}#True}
+        'checkpoint_save': True}#True}
 
 run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
    
