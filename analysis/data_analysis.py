@@ -12,9 +12,7 @@ import matplotlib.pyplot as plt
 save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
 
 
-#run_name = 'pawsey--lr-0.0001--trans-True-Tue-Feb--5-17:31:12-2019'
-run_name = 'pawsey--lr-0.0001--trans-True-Tue-Feb-19-09:53:33-2019'
-
+run_name = 'apples_tconv'
 
 testdice = np.load(save_folder + run_name + '/analysis/test_DICE.npy')
 testbce = np.load(save_folder + run_name + '/analysis/test_BCE.npy')
