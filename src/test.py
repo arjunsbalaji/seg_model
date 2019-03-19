@@ -147,6 +147,12 @@ class Test(object):
                 self.collection_of_losses2 += [float(loss2.data)]
                 self.collection_of_losses3 += [float(loss3.data)]
                 
+                ''' this bit here is to save pictures for figures in the paper!
+                self.lm = lumen_masked
+                self.image = input_data[0]
+                self.label = label_data[0]
+                break
+                '''
                 if i >= show_progress and self.args['display_text']:    
                     
                     time_left = (time.time() - sample_start_time) * ((self.total_epoch * self.total_images) - ((epoch + 1) * self.batch_size * (i+1)))

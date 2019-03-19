@@ -51,7 +51,7 @@ model_args = {'raw size': (256, 256),
               'final 2 dims': 16,              
               'recon channels': 1}
 
-args = {'location': 'pawsey',
+args = {'location': 'home',
         'model_args': model_args,
         'train': True, #False, # for resuming training #path to checkpoints folder in models run_save
         'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_sav>>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
@@ -63,7 +63,7 @@ args = {'location': 'pawsey',
         'transforms': True, #must be set to true!
         'epochs': 75,
         'batch_size': 10, #int
-        'uptype': 'upsample', #upsample or deconv
+        'uptype': 'deconv', #upsample or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,
         'scheduler_step': 5,
@@ -73,9 +73,9 @@ args = {'location': 'pawsey',
         'checkpoint_save': True}#True}
 
 run_name =  args['location'] + '--lr-' + str(args['init_lr']) + '--trans-' + str(args['transforms']) + '-' + time.asctime().replace(' ', '-')
-   
 
 sys.stdout.write('Run started at ' + time.asctime() + '\n') 
+sys.stdout.write('Run name is: ' + run_name + '\n')
 if args['train']:
     import train
     sys.stdout.write('-----------Training Model-----------' + '\n')
