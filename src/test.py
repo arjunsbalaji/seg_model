@@ -30,7 +30,7 @@ class Test(object):
         self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
         
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/test_data'
             #self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data/'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
@@ -106,7 +106,7 @@ class Test(object):
         self.collection_of_losses2 = []
         #collection_of_losses2 = collection_of_losses2.to(cuda_device)
         self.collection_of_losses3 = []
-        
+
 
     def test(self): 
         saved_pictures = torch.tensor([])
