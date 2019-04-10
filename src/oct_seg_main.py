@@ -61,12 +61,12 @@ args = {'location': 'pawsey',
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 70,
+        'epochs': 350,
         'batch_size': 10, #int
         'uptype': 'deconv', #upsample or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,
-        'scheduler_step': 5,
+        'scheduler_step': 100,
         'loss1_alpha': 0.1,
         'loss2_alpha': 1,
         'loss3_alpha': 0.05,
@@ -96,7 +96,7 @@ if args['test']:
     dice_min = np.min(tester.collection_of_losses1)
     dice_std = np.std(tester.collection_of_losses1)
     
-    sys.stdout.write('Dice Metrics: mean=' + str(1 - dice_mean) + ' max=' + str(1 - dice_max) + ' min=' + str(1 - dice_min) + ' std=' + str(dice_std) + '\n')
+    sys.stdout.write('Dice Metrics: mean=' + str(1 - dice_mean) + ' min=' + str(1 - dice_max) + ' max=' + str(1 - dice_min) + ' std=' + str(dice_std) + '\n')
 total_end_time = time.time()
 
 sys.stdout.write('Total Completion Time : ' + str(total_end_time-total_start_time) + ' secs')

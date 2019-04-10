@@ -231,16 +231,17 @@ class Train(object):
                     #pad_out = torch.nn.ZeroPad2d((0,0,2,2))
                     
                     #save the first sample per batch
-                    input_to_save = input_data.data[0,0,:,:].unsqueeze(0).unsqueeze(0)
-                    caps_to_save = caps_out.data[0,:,:,:].unsqueeze(0)
-                    label_to_save = label_data.data[0,:,:,:].unsqueeze(0)
-                    reconc_to_save = reconstruct.data[0,:,:,:].unsqueeze(0)
-                    
-                    saved_pictures = torch.cat((saved_pictures,
-                                                torch.cat((input_to_save,
-                                                           caps_to_save,
-                                                           label_to_save,
-                                                           reconc_to_save), 1)))
+                    if i == self.total_epoch - 1:
+                        input_to_save = input_data.data[0,0,:,:].unsqueeze(0).unsqueeze(0)
+                        caps_to_save = caps_out.data[0,:,:,:].unsqueeze(0)
+                        label_to_save = label_data.data[0,:,:,:].unsqueeze(0)
+                        reconc_to_save = reconstruct.data[0,:,:,:].unsqueeze(0)
+                        
+                        saved_pictures = torch.cat((saved_pictures,
+                                                    torch.cat((input_to_save,
+                                                               caps_to_save,
+                                                               label_to_save,
+                                                               reconc_to_save), 1)))
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
