@@ -31,7 +31,7 @@ class Train(object):
         self.args = args
         self.run_name = run_name
         
-        self.cuda_device = torch.device('cuda:0' if torch.cuda.is_available () else 'cpu')
+        self.cuda_device = torch.device('cuda' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
             self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/train_data'
