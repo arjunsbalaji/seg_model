@@ -51,7 +51,7 @@ model_args = {'raw size': (256, 256),
               'final 2 dims': 16,              
               'recon channels': 1}
 
-args = {'location': 'pawsey',
+args = {'location': 'home',
         'model_args': model_args,
         'train': True, #False, # for resuming training #path to checkpoints folder in models run_save
         'load_checkpoint': False,#False, # for resuming training #path to checkpoints folder in models run_sav>>>>>>> 7f53909735dd2b4d3c19f361fa52defbe356f286
@@ -61,8 +61,8 @@ args = {'location': 'pawsey',
         'show_percentage': 10,
         'save_analysis':True, #True,
         'transforms': True, #must be set to true!
-        'epochs': 350,
-        'batch_size': 10, #int
+        'epochs': 1,
+        'batch_size': 1, #int
         'uptype': 'deconv', #upsample or deconv
         'init_lr':0.0001,
         'scheduler_gamma': 0.8,

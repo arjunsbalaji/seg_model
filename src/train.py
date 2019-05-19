@@ -34,8 +34,8 @@ class Train(object):
         self.cuda_device = torch.device('cuda' if torch.cuda.is_available () else 'cpu')
     
         if args['location'] == 'home':    
-            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/train_data'
-            #self.main_data_dir = '/media/arjun/Arjun1TB/OCT MACHINA DATA/test_data/'
+            #self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/train_data'
+            self.main_data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/data_10'
             self.save_spot = os.path.join('/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', run_name)
         elif args['location'] == 'pawsey':    
             self.main_data_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'
@@ -229,7 +229,7 @@ class Train(object):
                     sys.stdout.write('| ' + 'Time remaining = ' +  str(np.round(time_left, 0)) + ' secs' + '\n')
                     
                     #pad_out = torch.nn.ZeroPad2d((0,0,2,2))
-                    
+                    '''
                     #save the first sample per batch
                     if i == self.total_epoch - 1:
                         input_to_save = input_data.data[0,0,:,:].unsqueeze(0).unsqueeze(0)
@@ -245,6 +245,7 @@ class Train(object):
                     
                     #saved_pictures = torch.cat((saved_pictures, images_to_save))
                     show_progress += self.show_chunks
+                    '''
                 #break
                 #print(pred.squeeze().size(), loss1.data, loss2.data)
         #with open(os.path.join(save_spot, 'run_name.txt'), "w") as text_file:
