@@ -5,6 +5,7 @@ Created on Mon May 13 16:36:11 2019
 
 @author: arjunbalaji
 """
+
 import argparse
 import os
 import torch
@@ -19,8 +20,8 @@ class Options():
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--location', type=str, default='laptop', help='home / pawsey / laptop')
-        self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/train_data', help='path to point clouds and labels. this is figured out depending on location')
+        self.parser.add_argument('--location', type=str, default='home', help='home / pawsey / laptop')
+        self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/train_data', help='path to point clouds and labels. this is figured out depending on location')
         self.parser.add_argument('--name', type=str, default='newrun', help='name of the experiment.')
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--epochs', type=int, default=1, help='number of training epochs. Test epochs is always 1')
@@ -86,7 +87,7 @@ class Options():
         self.opt.name = self.opt.location + '-' + name
         
         if self.opt.location == 'home':
-            self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/new_data/train_data'
+            self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/train_data'
             self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves'
         elif self.opt.location == 'pawsey':
             self.opt.dataroot = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/train_data'  

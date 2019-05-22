@@ -206,8 +206,8 @@ class OCTDataset(Dataset):
         image = np.transpose(image.copy(), (2, 0, 1))
         #og = preprocessing.MinMaxScaler(og)
         
-        sample = {'input': torch.tensor(image),
-                  'label': torch.tensor(label),
+        sample = {'input': torch.tensor(image).float(),
+                  'label': torch.tensor(label).float(),
                   'case_name': name}
 
         return sample
