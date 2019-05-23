@@ -17,14 +17,24 @@ import time
 import model
 import train1
 import test1
+import warnings
+
+warnings.simplefilter('ignore')
 start_time = time.time()
 
-experiment = Experiment(api_key="aSb5hPnLFt1wjOyjJfTJy4fkJ",
-                        project_name="general", workspace="arjunsbalaji")
+
 
 o = Options()
 o.parse()
 #o.save
+
+if o.opt.comet:
+    experiment = Experiment(api_key="aSb5hPnLFt1wjOyjJfTJy4fkJ",
+                            project_name="general", workspace="arjunsbalaji")
+else:
+    experiment = None
+    sys.stdout.write('No comet logging' + '\n')
+    
 
 data = dataset.OCTDataset(o.opt.dataroot,
                           start_size=o.opt.start_size,

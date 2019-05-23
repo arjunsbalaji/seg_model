@@ -27,9 +27,9 @@ class Test(object):
         self.opt = opt
         self.model = model
         self.testdata = testdata
-        self.loss_fn1 = m.Dice_loss()
-        self.loss_fn2 = torch.nn.BCELoss()
-        self.loss_fn2 = torch.nn.MSELoss()
+        self.loss_fn1 = m.Dice_Loss()
+        self.loss_fn2 = torch.nn.BCELoss(size_average=True)
+        self.loss_fn3 = torch.nn.MSELoss(size_average=True)
         self.experiment = experiment
         
         if self.opt.save:
@@ -72,10 +72,11 @@ class Test(object):
             self.col_lossestotal.append(self.loss.data)
             self.testnames.append(sample['name'][0])
             
-            self.experiment.log_metric('val_dice', self.col_losses1[-1])
-            self.experiment.log_metric('va_lbce', self.col_losses2[-1])
-            self.experiment.log_metric('val_recon', self.col_losses3[-1])
-            self.experiment.log_metric('val_total', self.col_lossestotal[-1])
+            if o.opt.comet:
+                self.experiment.log_metric('val_dice', self.col_losses1[-1])
+                self.experiment.log_metric('va_lbce', self.col_losses2[-1])
+                self.experiment.log_metric('val_recon', self.col_losses3[-1])
+                self.experiment.log_metric('val_total', self.col_lossestotal[-1])
             
             sys.stdout.write(sample['name'][0] + ' loss: ' + str(self.col_losses1[i]) + '\n')
             

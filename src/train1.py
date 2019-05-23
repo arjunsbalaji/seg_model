@@ -28,9 +28,9 @@ class Train(object):
         self.model = model
         self.traindata = traindata
         self.valdata = valdata
-        self.loss_fn1 = m.Dice_loss()
-        self.loss_fn2 = torch.nn.BCELoss()
-        self.loss_fn2 = torch.nn.MSELoss()
+        self.loss_fn1 = m.Dice_Loss()
+        self.loss_fn2 = torch.nn.BCELoss(size_average=True)
+        self.loss_fn3 = torch.nn.MSELoss(size_average=True)
         self.experiment = experiment
         
     def train(self):
@@ -97,10 +97,11 @@ class Train(object):
             valdata = self.validate()
             self.val_loss_data.append([valdata])
             
-            self.experiment.log_metric('val_dice', valdata[0])
-            self.experiment.log_metric('va_lbce', valdata[1])
-            self.experiment.log_metric('val_recon', valdata[2])
-            self.experiment.log_metric('val_total', valdata[3])
+            if o.opt.comet:
+                self.experiment.log_metric('val_dice', valdata[0])
+                self.experiment.log_metric('va_lbce', valdata[1])
+                self.experiment.log_metric('val_recon', valdata[2])
+                self.experiment.log_metric('val_total', valdata[3])
             
         if self.opt.save:
             np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainMSElosses.npy'), np.array(self.col_losses1))

@@ -32,11 +32,9 @@ class Options():
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
         self.parser.add_argument('--display_winsize', type=int, default=256, help='display window size')
         self.parser.add_argument('--display_id', type=int, default=200, help='window id of the web display')
+        self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
 
-        self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size. \
-                                 Our random crops will be from this resized thing.\
-                                 Convention is put same as cropped.\
-                                 We add 20 pixels to x and y.')
+        self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
         self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
