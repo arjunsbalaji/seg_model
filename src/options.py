@@ -23,16 +23,29 @@ class Options():
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
         self.parser.add_argument('--name', type=str, default='newrun', help='name of the experiment.')
+        
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
+        self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
+        self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
+        
+        self.parser.add_argument('--loadcheckpoint', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/home-Mon-May-27-23:17:51-2019/checkpoints/checkpoint.pt', help='load a training checkpoint? give path')
+        
+        
+        self.parser.add_argument('--train', type=bool, default=True, help='True to train, False to not.')
+        self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
+        self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
+        
         self.parser.add_argument('--epochs', type=int, default=10, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=20, help='input batch size')
+        self.parser.add_argument('--batch_size', type=int, default=25, help='input batch size')
+        
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
         self.parser.add_argument('--nThreads', default=8, type=int, help='# threads for loading data')
-        self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
+                                 
+        
         self.parser.add_argument('--display_winsize', type=int, default=256, help='display window size')
         self.parser.add_argument('--display_id', type=int, default=200, help='window id of the web display')
-        self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
+        
 
         self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
@@ -60,10 +73,8 @@ class Options():
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
         self.parser.add_argument('--lb', type=float, default=1, help='loss 2 coefficient')
         self.parser.add_argument('--lc', type=float, default=0.05, help='loss 3 coefficient')
-        self.parser.add_argument('--train', type=bool, default=True, help='True to train, False to not.')
-        self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
-        self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
-        self.parser.add_argument('--loadtrained', type=str, default=None, help='load a pre-trained model? give path')
+        
+        self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
         
         self.parser.add_argument('--verbose', type=int, default=True, help='verbosity; explanation goes here')
         self.initialized = True

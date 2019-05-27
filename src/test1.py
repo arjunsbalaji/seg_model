@@ -7,6 +7,7 @@ Created on Tue May 21 22:40:55 2019
 """
 
 import torch
+import torch.utils.data.sampler as sampler
 import time
 import numpy as np
 import os 
@@ -33,13 +34,18 @@ class Test(object):
         self.experiment = experiment
         
         if self.opt.save:
-            os.mkdir(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples'))
+            os.mkdir(os.path.join(self.opt.runsaves_dir,
+                                  self.opt.name,
+                                  'testsamples'))
             self.testsamples = {}
         
     def test(self):
         starttime = time.time()
         
-        self.testloader = torch.utils.data.DataLoader(self.testdata, batch_size = self.opt.batch_size, shuffle= False, sampler = torch.utils.data.sampler.SubsetRandomSampler([20,21,22,23]))
+        self.testloader = torch.utils.data.DataLoader(self.testdata,
+                                                      batch_size = self.opt.batch_size,
+                                                      shuffle= False,
+                                                      sampler = sampler.SubsetRandomSampler([20,21,22,23]))
         
         self.testnames = []
         
@@ -58,9 +64,10 @@ class Test(object):
             capsout, recon = self.model(input_data)
             
             #print(self.testsamples,sample['case_name'])
-            self.testsamples[sample['case_name'][0]] = torch.tensor(
-                    torch.cat((capsout.detach(),
-                               recon.detach()), dim=0))
+            if self.opt.save:
+                self.testsamples[sample['case_name'][0]] = torch.tensor(
+                        torch.cat((capsout.detach(),
+                                   recon.detach()), dim=0))
             
 
             lumen_masked = input_data[:,0,:,:].unsqueeze(1) * label_data
@@ -79,10 +86,10 @@ class Test(object):
             self.testnames.append(sample['case_name'][0])
             
             if self.opt.comet:
-                self.experiment.log_metric('val_dice', self.col_losses1[-1])
-                self.experiment.log_metric('va_lbce', self.col_losses2[-1])
-                self.experiment.log_metric('val_recon', self.col_losses3[-1])
-                self.experiment.log_metric('val_total', self.col_lossestotal[-1])
+                self.experiment.log_metric('test_dice', self.col_losses1[-1])
+                self.experiment.log_metric('test_lbce', self.col_losses2[-1])
+                self.experiment.log_metric('test_recon', self.col_losses3[-1])
+                self.experiment.log_metric('test_total', self.col_lossestotal[-1])
             
             sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(self.col_losses1[i]) + '\n')
             
