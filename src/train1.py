@@ -37,7 +37,7 @@ class Train(object):
         
         starttime = time.time()
         
-        self.trainloader = torch.utils.data.DataLoader(self.traindata, batch_size = self.opt.batch_size, shuffle= False)#, sampler = torch.utils.data.sampler.SubsetRandomSampler([0,1,2,3]))
+        self.trainloader = torch.utils.data.DataLoader(self.traindata, batch_size = self.opt.batch_size, shuffle= False, sampler = torch.utils.data.sampler.SubsetRandomSampler([0,1,2,3]))
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.opt.lr)
         
@@ -97,7 +97,7 @@ class Train(object):
             valdata = self.validate()
             self.val_loss_data.append([valdata])
             
-            if o.opt.comet:
+            if self.opt.comet:
                 self.experiment.log_metric('val_dice', valdata[0])
                 self.experiment.log_metric('va_lbce', valdata[1])
                 self.experiment.log_metric('val_recon', valdata[2])
@@ -115,7 +115,7 @@ class Train(object):
         sys.stdout.write('Validating...' + '\n')
         starttime = time.time()
 
-        self.valloader = torch.utils.data.DataLoader(self.valdata, batch_size = self.opt.batch_size, shuffle= False)#, sampler = torch.utils.data.sampler.SubsetRandomSampler([10,11,12]))
+        self.valloader = torch.utils.data.DataLoader(self.valdata, batch_size = self.opt.batch_size, shuffle= False, sampler = torch.utils.data.sampler.SubsetRandomSampler([10,11,12]))
         
         self.valcol_losses1 = []
         self.valcol_losses2 = []
@@ -141,7 +141,7 @@ class Train(object):
             else:
                 label_data = torch.unsqueeze(label_data, 1)
                 
-            caps_out, reconstruct = self.model
+            caps_out, reconstruct = self.model(input_data)
                 
     
             lumen_masked = (input_data[:,0,:,:].unsqueeze(1)) * label_data
@@ -152,7 +152,7 @@ class Train(object):
             loss2 = self.loss_fn2(caps_out, label_data.float())
             loss3 = self.loss_fn3(reconstruct, lumen_masked)
             
-            self.loss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
+            self.valloss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
             
             self.valcol_losses1.append(loss1.data)
             self.valcol_losses2.append(loss2.data)

@@ -39,7 +39,7 @@ class Test(object):
     def test(self):
         starttime = time.time()
         
-        self.testloader = torch.utils.data.DataLoader(self.testdata, batch_size = self.opt.batch_size, shuffle= False)#
+        self.testloader = torch.utils.data.DataLoader(self.testdata, batch_size = self.opt.batch_size, shuffle= False, sampler = torch.utils.data.sampler.SubsetRandomSampler([20,21,22,23]))
         
         self.testnames = []
         
@@ -56,9 +56,15 @@ class Test(object):
             label_data = label_data.to(self.opt.device)
             
             capsout, recon = self.model(input_data)
-            self.testsamples[sample['name'][0]] = np.array([capsout, recon])
             
-            lumen_masked = input_data[:,0,:,:] * label_data
+            #print(self.testsamples,sample['case_name'])
+            self.testsamples[sample['case_name'][0]] = torch.tensor(
+                    torch.cat((capsout.detach(),
+                               recon.detach()), dim=0))
+            
+
+            lumen_masked = input_data[:,0,:,:].unsqueeze(1) * label_data
+            
             
             loss1 = self.loss_fn1(capsout, label_data) #this is for my custom dice loss
             loss2 = self.loss_fn2(capsout, label_data)
@@ -70,22 +76,22 @@ class Test(object):
             self.col_losses2.append(loss2.data)
             self.col_losses3.append(loss3.data)
             self.col_lossestotal.append(self.loss.data)
-            self.testnames.append(sample['name'][0])
+            self.testnames.append(sample['case_name'][0])
             
-            if o.opt.comet:
+            if self.opt.comet:
                 self.experiment.log_metric('val_dice', self.col_losses1[-1])
                 self.experiment.log_metric('va_lbce', self.col_losses2[-1])
                 self.experiment.log_metric('val_recon', self.col_losses3[-1])
                 self.experiment.log_metric('val_total', self.col_lossestotal[-1])
             
-            sys.stdout.write(sample['name'][0] + ' loss: ' + str(self.col_losses1[i]) + '\n')
+            sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(self.col_losses1[i]) + '\n')
             
         self.testtime = time.time()-starttime
             
-        sys.stdout.write('Mean ' + str(np.mean(self.col_lossestotal)) + '\n' + \
-                         'Std ' + str(np.std(self.col_lossestotal)) + '\n' + \
-                         'Max ' +str(np.max(self.col_lossestotal)) + '\n' + \
-                         'Min ' + str(np.min(self.col_lossestotal)) + '\n')
+        sys.stdout.write('Mean ' + str(1-np.mean(self.col_losses1)) + '\n' + \
+                         'Std ' + str(np.std(self.col_losses1)) + '\n' + \
+                         'Max ' +str(1-np.max(self.col_losses1)) + '\n' + \
+                         'Min ' + str(1-np.min(self.col_losses1)) + '\n')
         
         if self.opt.save:
             np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testDICElosses.npy'), np.array(self.col_losses1))
@@ -96,5 +102,5 @@ class Test(object):
             
             #now to save all the test predictions as their case name
             for name in self.testnames:
-                np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples', name), self.testsamples[name].detach().cpu().numpy())
+                np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples', name), self.testsamples[name].cpu().numpy())
         

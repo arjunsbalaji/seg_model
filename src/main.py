@@ -26,7 +26,7 @@ start_time = time.time()
 
 o = Options()
 o.parse()
-#o.save
+o.save()
 
 if o.opt.comet:
     experiment = Experiment(api_key="aSb5hPnLFt1wjOyjJfTJy4fkJ",
@@ -42,7 +42,7 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           transform=o.opt.transforms)
 
 
-traindata, valdata, testdata = torch.utils.data.random_split(data, [1100,39,400])
+traindata, valdata, testdata = torch.utils.data.random_split(data, [8708,900,2403])
 
 octmodel = model.CapsNet(o.opt)
 octmodel.to(o.opt.device)
