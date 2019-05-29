@@ -41,8 +41,8 @@ class Train(object):
         
         self.trainloader = torch.utils.data.DataLoader(self.traindata,
                                                        batch_size = self.opt.batch_size,
-                                                       shuffle= False,
-                                                       sampler = sampler.SubsetRandomSampler([0,1,2,3]))
+                                                       shuffle= False) #,
+                                                       #sampler = sampler.SubsetRandomSampler([0,1,2,3]))
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.opt.lr)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min', patience=5, verbose=True)
@@ -151,8 +151,8 @@ class Train(object):
 
         self.valloader = torch.utils.data.DataLoader(self.valdata,
                                                      batch_size = self.opt.batch_size,
-                                                     shuffle= False,
-                                                     sampler = sampler.SubsetRandomSampler([10,11,12]))
+                                                     shuffle= False)#,
+                                                     #sampler = sampler.SubsetRandomSampler([10,11,12]))
         
         self.valcol_losses1 = []
         self.valcol_losses2 = []

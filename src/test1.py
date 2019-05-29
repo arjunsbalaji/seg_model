@@ -44,8 +44,8 @@ class Test(object):
         
         self.testloader = torch.utils.data.DataLoader(self.testdata,
                                                       batch_size = self.opt.batch_size,
-                                                      shuffle= False,
-                                                      sampler = sampler.SubsetRandomSampler([20,21,22,23]))
+                                                      shuffle= False)#,
+                                                      #sampler = sampler.SubsetRandomSampler([20,21,22,23]))
         
         self.testnames = []
         
