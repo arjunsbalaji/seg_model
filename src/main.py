@@ -48,10 +48,10 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           cropped_size=o.opt.c_size,
                           transform=o.opt.transforms)
 
-data = torch.utils.data.Subset(data, range(120))
+#data = torch.utils.data.Subset(data, range(120))
 
 beat = [8708,900,2403]
-traindata, valdata, testdata = torch.utils.data.random_split(data, [70,20,30])
+traindata, valdata, testdata = torch.utils.data.random_split(data, beat)
 
 octmodel = model.CapsNet(o.opt)
 octmodel.to(o.opt.device)
