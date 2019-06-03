@@ -92,7 +92,7 @@ class Test(object):
                 self.experiment.log_metric('test_recon', self.col_losses3[-1])
                 self.experiment.log_metric('test_total', self.col_lossestotal[-1])
             
-            sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(self.col_losses1[i]) + '\n')
+            sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(1 - self.col_losses1[i]) + '\n')
             
         self.testtime = time.time()-starttime
             

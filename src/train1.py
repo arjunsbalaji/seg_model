@@ -110,9 +110,11 @@ class Train(object):
                 
                 self.loss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
                 
+                self.loss.backward()
+                
                 self.optimizer.step()
                 
-                self.col_losses1.append(loss1.data)
+                self.col_losses1.append(1-loss1.data)
                 self.col_losses2.append(loss2.data)
                 self.col_losses3.append(loss3.data)
                 self.col_lossestotal.append(self.loss.data)
@@ -120,13 +122,18 @@ class Train(object):
 
                 if self.opt.logging:
                     self.logs.append(torch.cuda.memory_allocated()/torch.cuda.memory_cached())
-            
+                    
             self.traintime = time.time() - starttime
             sys.stdout.write('ave sample time: ' + str(self.traintime/ ((epoch + 1) * len(self.trainloader))) + '\n')
+            
+            
+            
+            
             
             self.model.eval()
             valdata = self.validate()
             self.val_loss_data.append([valdata])
+            
             
             self.scheduler.step(self.loss.data)
             
@@ -199,12 +206,12 @@ class Train(object):
             
             self.valloss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
             
-            self.valcol_losses1.append(loss1.data)
+            self.valcol_losses1.append(1-loss1.data)
             self.valcol_losses2.append(loss2.data)
             self.valcol_losses3.append(loss3.data)
             self.valcol_lossestotal.append(self.valloss.data)
             
-        sys.stdout.write('Average Validation loss for epoch:' + str(1-np.mean(self.valcol_losses1)) \
+        sys.stdout.write('Average Validation loss for epoch:' + str(np.mean(self.valcol_losses1)) \
                          + ', validation took '+ str(time.time()-starttime) + 'secs ' + '\n' + '\n')
         
         return [np.mean(self.valcol_losses1), np.mean(self.valcol_losses2), np.mean(self.valcol_losses3), np.mean(self.valcol_lossestotal)]

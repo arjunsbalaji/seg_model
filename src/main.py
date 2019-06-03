@@ -23,8 +23,8 @@ import torch
 import dataset
 import time
 import model
-import train1
-import test1
+import train1 as train
+import test1 as test
 import warnings
 
 
@@ -48,9 +48,10 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           cropped_size=o.opt.c_size,
                           transform=o.opt.transforms)
 
-#data = torch.utils.data.Subset(data, range(120))
+data = torch.utils.data.Subset(data, range(120))
 
-traindata, valdata, testdata = torch.utils.data.random_split(data, [8708,900,2403])
+beat = [8708,900,2403]
+traindata, valdata, testdata = torch.utils.data.random_split(data, [70,20,30])
 
 octmodel = model.CapsNet(o.opt)
 octmodel.to(o.opt.device)
@@ -63,7 +64,7 @@ setsize={'train':range(70),
          'test':range(30)}
 
 if o.opt.train:
-    sys.stdout.write('Starting Training... ' + '\n')
+    sys.stdout.write('Starting Training... ' + '\n' + '\n')
     Trainer = train.Train(o.opt, octmodel, traindata, valdata, setsize['train'], setsize['val'], experiment, checkpoint)
     Trainer.train()
     sys.stdout.write('Training completed in: ' + str(Trainer.traintime)+ 'secs.' +'\n' +'\n')
