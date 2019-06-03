@@ -217,4 +217,27 @@ class OCTDataset(Dataset):
         data points we have in our dataset"""
         return len(self.name_list)
     
-###############################################################################       
+###############################################################################   
+        
+def visualise(sample):
+        
+        #sample = self.__getitem__(idx)
+        sample=sample
+        #print(sample['input'].size())
+        #print(sample['label'].size())
+        input_data = sample['input'].cpu().numpy()[0,:,:]
+        l_data = sample['label'].cpu().numpy()[0,:,:]
+
+        
+        
+        f, (axin, axl, ax1comb) = plt.subplots(1,3, sharey=True)
+        f.subplots_adjust(hspace=0.3)
+        plt.tight_layout()
+        
+        #plot image
+        image = axin.imshow(input_data,
+                            aspect = 'equal')
+        f.colorbar(image, ax=axin, orientation='vertical', fraction = 0.05)
+        
+        axl.imshow(l_data,
+                   aspect = 'equal')

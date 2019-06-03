@@ -20,23 +20,23 @@ class Options():
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
+        self.parser.add_argument('--location', type=str, default='home', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
         self.parser.add_argument('--name', type=str, default='newrun', help='name of the experiment.')
         
-        self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
-        self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
+        self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves', help='models are saved here. this is figured out depending on location')
+        self.parser.add_argument('--save', type=bool, default=False, help='Whether to save checkpoints and analysis')
         self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
         
-        self.parser.add_argument('--loadcheckpoint', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/home-Mon-May-27-23:17:51-2019/checkpoints/checkpoint.pt', help='load a training checkpoint? give path')
+        self.parser.add_argument('--loadcheckpoint', type=str, default=None, help='load a training checkpoint? give path')
         
         
         self.parser.add_argument('--train', type=bool, default=True, help='True to train, False to not.')
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=10, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=3, help='input batch size')
+        self.parser.add_argument('--epochs', type=int, default=1, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
@@ -67,7 +67,7 @@ class Options():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -97,7 +97,7 @@ class Options():
         
         if self.opt.location == 'home':
             self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
-            self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves'
+            self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves'
         elif self.opt.location == 'pawsey':
             self.opt.dataroot = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
             self.opt.runsaves_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'
@@ -146,7 +146,6 @@ class OptionsA():
         self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
         
         self.parser.add_argument('--loadcheckpoint', type=str, default=None, help='load a training checkpoint? give path')
-        
         
         self.parser.add_argument('--train', type=bool, default=True, help='True to train, False to not.')
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')

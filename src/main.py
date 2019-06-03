@@ -23,9 +23,10 @@ import torch
 import dataset
 import time
 import model
-import train
-import test
+import train1
+import test1
 import warnings
+
 
 warnings.simplefilter('ignore')
 start_time = time.time()
@@ -47,6 +48,7 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           cropped_size=o.opt.c_size,
                           transform=o.opt.transforms)
 
+#data = torch.utils.data.Subset(data, range(120))
 
 traindata, valdata, testdata = torch.utils.data.random_split(data, [8708,900,2403])
 
@@ -55,17 +57,21 @@ octmodel.to(o.opt.device)
 
 if o.opt.loadcheckpoint:
     octmodel.load_state_dict(checkpoint['model_state_dict'])
+    
+setsize={'train':range(70),
+         'val':range(20),
+         'test':range(30)}
 
 if o.opt.train:
     sys.stdout.write('Starting Training... ' + '\n')
-    Trainer = train.Train(o.opt, octmodel, traindata, valdata, experiment, checkpoint)
+    Trainer = train.Train(o.opt, octmodel, traindata, valdata, setsize['train'], setsize['val'], experiment, checkpoint)
     Trainer.train()
     sys.stdout.write('Training completed in: ' + str(Trainer.traintime)+ 'secs.' +'\n' +'\n')
     
     
 if o.opt.test:
     sys.stdout.write('Starting Testing... ' + str(time.time()-start_time) + 'secs so far.' + '\n')
-    Tester = test.Test(o.opt, octmodel, testdata, experiment)
+    Tester = test.Test(o.opt, octmodel, testdata, setsize['test'], experiment)
     Tester.test()
     sys.stdout.write('Testing completed in: ' + str(Tester.testtime)+ 'secs.' +'\n')
     
