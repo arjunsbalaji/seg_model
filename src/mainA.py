@@ -23,8 +23,8 @@ import torch
 import dataset
 import time
 import model
-import train
-import test
+import train1 as train
+import test1 as test
 import warnings
 
 warnings.simplefilter('ignore')
