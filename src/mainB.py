@@ -7,7 +7,7 @@ Created on Mon May 13 16:58:24 2019
 """
 from options import Options
 
-o = OptionsA()
+o = OptionsB()
 o.parse()
 
 if o.opt.save:
