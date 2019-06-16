@@ -89,12 +89,13 @@ class OCTDataset(Dataset):
                   main_data_dir,
                   start_size,
                   cropped_size,
-                  transform):
+                  transform,
+                  input_images):
         self.main_data_dir = main_data_dir
         self.start_size = start_size
         self.transform = transform
         self.cropped_size = cropped_size
-        
+        self.input_images = input_images
         
         self.rcrop = RandomCrop(self.cropped_size)
         self.phflip = np.random.rand()
@@ -206,7 +207,8 @@ class OCTDataset(Dataset):
         image = np.transpose(image.copy(), (2, 0, 1))
         #og = preprocessing.MinMaxScaler(og)
         
-        sample = {'input': torch.tensor(image).float(),
+        
+        sample = {'input': torch.tensor(image).float()[self.input_images],
                   'label': torch.tensor(label).float(),
                   'case_name': name}
 

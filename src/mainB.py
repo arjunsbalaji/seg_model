@@ -46,11 +46,15 @@ else:
 data = dataset.OCTDataset(o.opt.dataroot,
                           start_size=o.opt.start_size,
                           cropped_size=o.opt.c_size,
-                          transform=o.opt.transforms)
+                          transform=o.opt.transforms,
+                          input_images = [0,2])
 
+#this and beat sum(120) are to use 120 long data set!
 #data = torch.utils.data.Subset(data, range(120))
 
 beat = [8708,900,2403]
+#beat = [90,10,20]
+
 traindata, valdata, testdata = torch.utils.data.random_split(data, beat)
 
 octmodel = model.CapsNet(o.opt)

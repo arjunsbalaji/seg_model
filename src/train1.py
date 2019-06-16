@@ -76,43 +76,8 @@ class Train(object):
             
             self.model.train()
             for i, sample in enumerate(self.trainloader):
-                input_data = sample['input']
-                input_data = input_data.to(self.opt.device)
 
-                label_data = sample['label']
-                label_data = label_data.to(self.opt.device)
-                
-                label_data = label_data.squeeze()
-                
-                #wut
-                if len(label_data.size()) == 2:
-                    #print(label_data.size(), 'l2')
-                    label_data = torch.unsqueeze(label_data, 0)
-                    #print(label_data.size(), 'l3')
-                    label_data = torch.unsqueeze(label_data, 1)
-                else:
-                    label_data = torch.unsqueeze(label_data, 1)
-                    
-                self.input_data = input_data
-                self.label_data = label_data
-                caps_out, reconstruct = self.model(input_data)
-                    
-                self.caps_out = caps_out
-                self.reconstruct = reconstruct
-                
-                lumen_masked = (input_data[:,0,:,:].unsqueeze(1)) * label_data
-                
-                self.optimizer.zero_grad()
-                
-                loss1 = self.loss_fn1(caps_out, label_data) #this is for my custom dice loss
-                loss2 = self.loss_fn2(caps_out, label_data.float())
-                loss3 = self.loss_fn3(reconstruct, lumen_masked)
-                
-                self.loss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
-                
-                self.loss.backward()
-                
-                self.optimizer.step()
+                loss1, loss2, loss3 = self.train_step(sample)
                 
                 self.col_losses1.append(1-loss1.data)
                 self.col_losses2.append(loss2.data)
@@ -158,7 +123,50 @@ class Train(object):
                                      'gpumemlogs.npy'),
                         np.array(self.col_losses1))
 
-  
+    def train_step(self, sample):
+        input_data = sample['input']
+        input_data = input_data.to(self.opt.device)
+
+        label_data = sample['label']
+        label_data = label_data.to(self.opt.device)
+                
+        label_data = label_data.squeeze()
+                
+        #wut
+        if len(label_data.size()) == 2:
+            #print(label_data.size(), 'l2')
+            label_data = torch.unsqueeze(label_data, 0)
+            #print(label_data.size(), 'l3')
+            label_data = torch.unsqueeze(label_data, 1)
+        else:
+            label_data = torch.unsqueeze(label_data, 1)
+        
+        
+        #use these for troubleshooting
+        #self.input_data = input_data
+        #self.label_data = label_data
+        caps_out, reconstruct = self.model(input_data)
+        
+        #use these for troubleshooting           
+        #self.caps_out = caps_out
+        #self.reconstruct = reconstruct
+                
+        lumen_masked = (input_data[:,0,:,:].unsqueeze(1)) * label_data
+                
+        self.optimizer.zero_grad()
+                
+        loss1 = self.loss_fn1(caps_out, label_data) #this is for my custom dice loss
+        loss2 = self.loss_fn2(caps_out, label_data.float())
+        loss3 = self.loss_fn3(reconstruct, lumen_masked)
+                
+        self.loss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
+                
+        self.loss.backward()
+                
+        self.optimizer.step()
+        
+        return loss1, loss2, loss3
+        
                 
     def validate(self):
         sys.stdout.write('Validating...' + '\n')

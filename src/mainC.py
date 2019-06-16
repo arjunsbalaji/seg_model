@@ -5,9 +5,9 @@ Created on Mon May 13 16:58:24 2019
 
 @author: arjunbalaji
 """
-from options import OptionsA
+from options import OptionsC
 
-o = OptionsA()
+o = OptionsC()
 o.parse()
 
 if o.opt.save:
@@ -47,13 +47,15 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           start_size=o.opt.start_size,
                           cropped_size=o.opt.c_size,
                           transform=o.opt.transforms,
-                          input_images = [0,1])
+                          input_images = [0,1,2])
 
 #this and beat sum(120) are to use 120 long data set!
 #data = torch.utils.data.Subset(data, range(120))
-
-beat = [8708,900,2403]
 #beat = [90,10,20]
+
+#OR 
+beat = [8708,900,2403]
+
 
 traindata, valdata, testdata = torch.utils.data.random_split(data, beat)
 
@@ -96,5 +98,6 @@ sys.stdout.write('Completed in: ' + str(time.time() - start_time)+ 'secs.' +'\n'
 #torch.save(Trainer.optimizer.state_dict(), checkpointpath + '/optimizer.pt')
 #torch.save(Trainer.scheduler.state_dict(), checkpointpath + '/scheduler.pt')
 #analysispath = os.path.join(o.opt.runsaves_dir, o.opt.name, 'analysis')"""
+
 
 
