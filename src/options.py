@@ -151,10 +151,10 @@ class OptionsA():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=3, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
         self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
-        self.parser.add_argument('--uptype', type=str, default='upsample', help='upsample or deconv')
+        self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
         self.parser.add_argument('--nThreads', default=8, type=int, help='# threads for loading data')
                                  
@@ -183,7 +183,7 @@ class OptionsA():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
