@@ -38,7 +38,7 @@ class Options():
         self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
         self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
-        self.parser.add_argument('--uptype', type=str, default='upsample', help='upsample or deconv')
+        self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
         self.parser.add_argument('--nThreads', default=8, type=int, help='# threads for loading data')
                                  
@@ -254,12 +254,12 @@ class OptionsB():
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--location', type=str, default='home', help='home / pawsey / laptop')
+        self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
         self.parser.add_argument('--name', type=str, default='intest_02', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
-        self.parser.add_argument('--save', type=bool, default=False, help='Whether to save checkpoints and analysis')
+        self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
         self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
         
         self.parser.add_argument('--loadcheckpoint', type=str, default=None, help='load a training checkpoint? give path')
@@ -268,8 +268,8 @@ class OptionsB():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=2, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size')
+        self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
@@ -370,12 +370,12 @@ class OptionsC():
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--location', type=str, default='home', help='home / pawsey / laptop')
+        self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
         self.parser.add_argument('--name', type=str, default='intest_012', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
-        self.parser.add_argument('--save', type=bool, default=False, help='Whether to save checkpoints and analysis')
+        self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
         self.parser.add_argument('--comet', type=bool, default=False, help='Whether to log on comet.')
         
         self.parser.add_argument('--loadcheckpoint', type=str, default=None, help='load a training checkpoint? give path')
@@ -384,8 +384,8 @@ class OptionsC():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=2, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=5, help='input batch size')
+        self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
