@@ -22,7 +22,7 @@ class Options():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='intest_0', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='de_e20_s1', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -49,7 +49,7 @@ class Options():
 
         self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
-        self.parser.add_argument('--inputchannels', type=int, default=1, help='number of input channels (image, df, lg) = 3')
+        self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
         self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
@@ -66,8 +66,10 @@ class Options():
         
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
-
-        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
+        
+        
+        #only lr is being used rn. Should change other sched params to patience etc...
+        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -87,11 +89,11 @@ class Options():
         self.opt.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(10)
-            np.random.seed(10)
+            torch.cuda.manual_seed_all(1)
+            np.random.seed(1)
         else:
-            torch.manual_seed(10)
-            np.random.seed(10)
+            torch.manual_seed(1)
+            np.random.seed(1)
             
         self.opt.name = self.opt.name + '-' + self.opt.location + '-' + name
         
@@ -139,7 +141,7 @@ class OptionsA():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='intest_01', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='de_e20_s2', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -165,7 +167,7 @@ class OptionsA():
 
         self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
-        self.parser.add_argument('--inputchannels', type=int, default=2, help='number of input channels (image, df, lg) = 3')
+        self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
         self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
@@ -183,7 +185,7 @@ class OptionsA():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -203,11 +205,11 @@ class OptionsA():
         self.opt.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(10)
-            np.random.seed(10)
+            torch.cuda.manual_seed_all(2)
+            np.random.seed(2)
         else:
-            torch.manual_seed(10)
-            np.random.seed(10)
+            torch.manual_seed(2)
+            np.random.seed(2)
             
         self.opt.name = self.opt.name + '-' + self.opt.location + '-' + name
         
@@ -256,7 +258,7 @@ class OptionsB():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='intest_02', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='de_e20_s3', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -282,7 +284,7 @@ class OptionsB():
 
         self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
-        self.parser.add_argument('--inputchannels', type=int, default=2, help='number of input channels (image, df, lg) = 3')
+        self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
         self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
@@ -300,7 +302,7 @@ class OptionsB():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -320,11 +322,11 @@ class OptionsB():
         self.opt.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(10)
-            np.random.seed(10)
+            torch.cuda.manual_seed_all(3)
+            np.random.seed(3)
         else:
-            torch.manual_seed(10)
-            np.random.seed(10)
+            torch.manual_seed(3)
+            np.random.seed(3)
             
         self.opt.name = self.opt.name + '-' + self.opt.location + '-' + name
         
@@ -370,9 +372,9 @@ class OptionsC():
         self.initialized = False
 
     def initialize(self):
-        self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
+        self.parser.add_argument('--location', type=str, default='home', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='intest_012', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='de_e20_s4', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -398,7 +400,7 @@ class OptionsC():
 
         self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
         self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
-        self.parser.add_argument('--inputchannels', type=int, default=2, help='number of input channels (image, df, lg) = 3')
+        self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
         self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
@@ -416,7 +418,7 @@ class OptionsC():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -436,17 +438,17 @@ class OptionsC():
         self.opt.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(10)
-            np.random.seed(10)
+            torch.cuda.manual_seed_all(4)
+            np.random.seed(4)
         else:
-            torch.manual_seed(10)
-            np.random.seed(10)
+            torch.manual_seed(4)
+            np.random.seed(4)
             
         self.opt.name = self.opt.name + '-' + self.opt.location + '-' + name
         
         if self.opt.location == 'home':
             self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
-            self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves'
+            self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves'
         elif self.opt.location == 'pawsey':
             self.opt.dataroot = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
             self.opt.runsaves_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'

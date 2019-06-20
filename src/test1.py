@@ -16,10 +16,6 @@ import shutil
 import warnings
 import model as m
 
-torch.manual_seed(7)
-np.random.seed(7)
-
-
 
 start_time = time.time()
 
@@ -39,14 +35,20 @@ class Test(object):
                                   self.opt.name,
                                   'testsamples'))
             self.testsamples = {}
+            
+        self.testloader = torch.utils.data.DataLoader(self.testdata,
+                                                      batch_size = self.opt.batch_size,
+                                                      shuffle= False)
         
+
     def test(self):
         starttime = time.time()
         
         self.testloader = torch.utils.data.DataLoader(self.testdata,
                                                       batch_size = self.opt.batch_size,
-                                                      shuffle= False)#,
-                                                      #sampler = sampler.SubsetRandomSampler(self.setsize))
+                                                      shuffle= False)
+        
+        
         
         self.testnames = []
         
@@ -110,5 +112,6 @@ class Test(object):
             
             #now to save all the test predictions as their case name
             for name in self.testnames:
+                np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testNAMES.npy'), self.testnames)
                 np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples', name), self.testsamples[name].cpu().numpy())
         

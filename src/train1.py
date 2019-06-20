@@ -16,10 +16,6 @@ import shutil
 import warnings
 import model as m
 
-torch.manual_seed(7)
-np.random.seed(7)
-
-
 
 start_time = time.time()
 
@@ -110,8 +106,8 @@ class Train(object):
         
 
         if self.opt.save:
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainMSElosses.npy'), np.array(self.col_losses1))
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainPAIRlosses.npy'), np.array(self.col_losses2))
+            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainDICElosses.npy'), np.array(self.col_losses1))
+            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainBCElosses.npy'), np.array(self.col_losses2))
             np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainReconlosses.npy'), np.array(self.col_losses3))
             np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'trainTOTALlosses.npy'), np.array(self.col_lossestotal))
             np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'vallossdata.npy'), np.array(self.val_loss_data))

@@ -47,7 +47,7 @@ data = dataset.OCTDataset(o.opt.dataroot,
                           start_size=o.opt.start_size,
                           cropped_size=o.opt.c_size,
                           transform=o.opt.transforms,
-                          input_images = [0,2])
+                          input_images = [0,1,2])
 
 #this and beat sum(120) are to use 120 long data set!
 #data = torch.utils.data.Subset(data, range(120))

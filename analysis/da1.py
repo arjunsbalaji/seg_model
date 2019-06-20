@@ -7,12 +7,15 @@ Created on Tue Jan 15 15:53:52 2019
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import visdom 
 
-save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
-#save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves/'
+'''
+#save_folder = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves/'
+save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/'
 
 
-run_name = 'newformatdeconv-pawsey-Wed-Jun--5-12:24:51-2019'
+run_name = 'up20e_0-pawsey-Tue-Jun-11-04:43:55-2019'
 
 testdice = np.load(save_folder + run_name + '/analysis/testDICElosses.npy')
 testbce = np.load(save_folder + run_name + '/analysis/testBCElosses.npy')
@@ -28,11 +31,31 @@ valloss = np.load(save_folder + run_name + '/analysis/vallossdata.npy')
 
 gpulog = np.load(save_folder + run_name + '/analysis/gpumemlogs.npy')
 
-
+testsample_names = os.listdir(save_folder + run_name +'/testsamples')
+'''
 
 class DataAnalysis(object):
-    def __init__(self, a):
-        self.a = a
+    def __init__(self, run_name):
+        self.run_name = run_name
+        
+        save_folder = '/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/'
+
+        self.testdice = np.load(save_folder + run_name + '/analysis/testDICElosses.npy')
+        self.testbce = np.load(save_folder + run_name + '/analysis/testBCElosses.npy')
+        self.testrecon = np.load(save_folder + run_name + '/analysis/testRECONlosses.npy')
+        self.testtotal = np.load(save_folder + run_name + '/analysis/testTOTALlosses.npy')
+        
+        #pair to dice, mse to bce
+        self.traindice = np.load(save_folder + run_name + '/analysis/trainPAIRlosses.npy')
+        self.trainbce = np.load(save_folder + run_name + '/analysis/trainMSElosses.npy')
+        self.trainrecon = np.load(save_folder + run_name + '/analysis/trainReconlosses.npy')
+        self.traintotal = np.load(save_folder + run_name + '/analysis/trainTOTALlosses.npy')
+        
+        self.valloss = np.load(save_folder + run_name + '/analysis/vallossdata.npy')
+        
+        self.gpulog = np.load(save_folder + run_name + '/analysis/gpumemlogs.npy')
+        
+        self.testsample_names = os.listdir(save_folder + run_name +'/testsamples')
         
     def moving_ave(self, loss_list, move_by):
         new_loss_list = loss_list
@@ -77,5 +100,5 @@ class DataAnalysis(object):
         
         self.print_sample(sample, loss, lumen_threshold=None)
     
-da = DataAnalysis(1)
+da = DataAnalysis('up20e_0-pawsey-Tue-Jun-11-04:43:55-2019')
 
