@@ -102,3 +102,15 @@ class DataAnalysis(object):
     
 da = DataAnalysis('up20e_0-pawsey-Tue-Jun-11-04:43:55-2019')
 
+''' how to load all acc and dice csvs
+accdata = {}
+dicedata = {}
+for name in listsaves[2:]:
+    accdir = os.path.join(dird, name, 'analysis/acc.csv')
+    dicedir = os.path.join(dird, name, 'analysis/dice.csv')
+    acc1 = np.loadtxt(accdir, delimiter=',')
+    dice1 = np.loadtxt(dicedir, delimiter=',')
+    accdata[name]=acc1
+    dicedata[name]=dice1
+'''
+

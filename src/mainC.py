@@ -5,9 +5,9 @@ Created on Mon May 13 16:58:24 2019
 
 @author: arjunbalaji
 """
-from options import OptionsC
+from options import OptionsHome
 
-o = OptionsC()
+o = OptionsHome()
 o.parse()
 
 if o.opt.save:
@@ -58,7 +58,7 @@ beat = [8708,900,2403]
 
 
 traindata, valdata, testdata = torch.utils.data.random_split(data, beat)
-
+gfdssdgf
 octmodel = model.CapsNet(o.opt)
 octmodel.to(o.opt.device)
 
