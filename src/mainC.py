@@ -58,7 +58,6 @@ beat = [8708,900,2403]
 
 
 traindata, valdata, testdata = torch.utils.data.random_split(data, beat)
-gfdssdgf
 octmodel = model.CapsNet(o.opt)
 octmodel.to(o.opt.device)
 

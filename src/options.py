@@ -22,7 +22,7 @@ class Options():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='de_e20_s1', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='low_param', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -35,8 +35,8 @@ class Options():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
+        self.parser.add_argument('--epochs', type=int, default=50, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--batch_size', type=int, default=20, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
@@ -47,17 +47,17 @@ class Options():
         self.parser.add_argument('--display_id', type=int, default=200, help='window id of the web display')
         
 
-        self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
-        self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
+        self.parser.add_argument('--start_size', type=tuple, default=(128,128), help='resize initial image to this size')
+        self.parser.add_argument('--c_size', type=tuple, default=(128,128), help='cropped size ')
         self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
-        self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
+        self.parser.add_argument('--primmaps', type=int, default=8, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
-        self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
-        self.parser.add_argument('--dims1', type=int, default=24, help='1st layer dims')
-        self.parser.add_argument('--maps2', type=int, default=16, help='2nd layer maps')
-        self.parser.add_argument('--dims2', type=int, default=32, help='2nd layer dims')
-        self.parser.add_argument('--maps3', type=int, default=24, help='3rd layer maps')
-        self.parser.add_argument('--dims3', type=int, default=48, help='3rd layer dims')
+        self.parser.add_argument('--maps1', type=int, default=12, help='1st layer maps')
+        self.parser.add_argument('--dims1', type=int, default=16, help='1st layer dims')
+        self.parser.add_argument('--maps2', type=int, default=14, help='2nd layer maps')
+        self.parser.add_argument('--dims2', type=int, default=16, help='2nd layer dims')
+        self.parser.add_argument('--maps3', type=int, default=16, help='3rd layer maps')
+        self.parser.add_argument('--dims3', type=int, default=16, help='3rd layer dims')
         self.parser.add_argument('--f1maps', type=int, default=2, help='f1 layer maps')                                                  
         self.parser.add_argument('--f1dims', type=int, default=32, help='f1 layer dims')
         self.parser.add_argument('--f2maps', type=int, default=1, help='f2 layer maps')
@@ -69,7 +69,7 @@ class Options():
         
         
         #only lr is being used rn. Should change other sched params to patience etc...
-        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
@@ -398,17 +398,17 @@ class OptionsHome():
         self.parser.add_argument('--display_id', type=int, default=200, help='window id of the web display')
         
 
-        self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
-        self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
+        self.parser.add_argument('--start_size', type=tuple, default=(128,128), help='resize initial image to this size')
+        self.parser.add_argument('--c_size', type=tuple, default=(128,128), help='cropped size ')
         self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
-        self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
+        self.parser.add_argument('--primmaps', type=int, default=8, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
-        self.parser.add_argument('--maps1', type=int, default=8, help='1st layer maps')
-        self.parser.add_argument('--dims1', type=int, default=24, help='1st layer dims')
-        self.parser.add_argument('--maps2', type=int, default=16, help='2nd layer maps')
-        self.parser.add_argument('--dims2', type=int, default=32, help='2nd layer dims')
-        self.parser.add_argument('--maps3', type=int, default=24, help='3rd layer maps')
-        self.parser.add_argument('--dims3', type=int, default=48, help='3rd layer dims')
+        self.parser.add_argument('--maps1', type=int, default=12, help='1st layer maps')
+        self.parser.add_argument('--dims1', type=int, default=16, help='1st layer dims')
+        self.parser.add_argument('--maps2', type=int, default=14, help='2nd layer maps')
+        self.parser.add_argument('--dims2', type=int, default=16, help='2nd layer dims')
+        self.parser.add_argument('--maps3', type=int, default=16, help='3rd layer maps')
+        self.parser.add_argument('--dims3', type=int, default=16, help='3rd layer dims')
         self.parser.add_argument('--f1maps', type=int, default=2, help='f1 layer maps')                                                  
         self.parser.add_argument('--f1dims', type=int, default=32, help='f1 layer dims')
         self.parser.add_argument('--f2maps', type=int, default=1, help='f2 layer maps')
@@ -418,7 +418,7 @@ class OptionsHome():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.0008, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')

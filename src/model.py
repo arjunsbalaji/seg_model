@@ -872,7 +872,7 @@ class CapsNet(torch.nn.Module):
         x = self.get_prim_caps(x)
         x_prim = x
         #print(x.size(),'0')
-        self.x_prim = x_prim
+        #self.x_prim = x_prim
         #print('##########################FINISHED PRIM#######################')
         x = self.get_abstract_caps1(x)
         
@@ -880,7 +880,7 @@ class CapsNet(torch.nn.Module):
         x = self.get_abstract_caps1a(x)
         x_1 = x
         #print(x.size(), '1a')
-        self.x_1 = x_1
+        #self.x_1 = x_1
         #print('##########################FINISHED 1#######################')
         
         x = self.get_abstract_caps2(x)
@@ -888,19 +888,19 @@ class CapsNet(torch.nn.Module):
         x = self.get_abstract_caps2a(x)
         x_2 = x
         #print(x.size(), '2a')
-        self.x_2 = x_2
+        #self.x_2 = x_2
         
         x = self.get_abstract_caps3(x)
         #print(x.size(), '3')
         x = self.get_abstract_caps3a(x)
         x_3 = x
         #print(x.size(), '3a')
-        self.x_3 = x_3
-             
+        #self.x_3 = x_3
+
         x = self.get_abstract_caps_bot(x)
         #x_bot = x
         #print(x.size(), 'bot')
-        
+
         #gotta be careful on the way up there are double maps
         x = torch.cat((x, x_3), 1)
         
@@ -908,7 +908,6 @@ class CapsNet(torch.nn.Module):
         #print(x.size(), '3u')
         x = self.get_abstract_caps3ua(x)
         #print(x.size(), '3ua')
-        
 
         x = torch.cat((x, x_2), 1)
         x = self.get_abstract_caps2u(x)
@@ -916,6 +915,7 @@ class CapsNet(torch.nn.Module):
         x = self.get_abstract_caps2ua(x)
         #print(x.size(), '2ua')
         
+
         x = torch.cat((x, x_1), 1)
         x = self.get_abstract_caps1u(x)
         #print(x.size(), '1u')
