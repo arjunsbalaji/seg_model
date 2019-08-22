@@ -141,7 +141,7 @@ class OptionsA():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='de_e20_s2', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='Final', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -153,8 +153,8 @@ class OptionsA():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=20, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
+        self.parser.add_argument('--epochs', type=int, default=50, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
@@ -211,7 +211,7 @@ class OptionsA():
             torch.manual_seed(2)
             np.random.seed(2)
             
-        self.opt.name = self.opt.name + '-' + self.opt.location + '-' + name
+        self.opt.name = self.opt.name + '-' + self.opt.location #+ '-' + name
         
         if self.opt.location == 'home':
             self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'

@@ -25,6 +25,10 @@ warnings.simplefilter('ignore')
 torch.manual_seed(7)
 np.random.seed(7)
 
+#options must be same for model as the loaded model.!
+o = OptionsHome()
+o.parse()
+
 
 start_time = time.time()
 def sens(c,l):
@@ -121,8 +125,8 @@ class Deploy(object):
             inputdata = np.transpose(inputdata, (1, 2, 0))
             #print(inputdata.shape)
             #print(labeldata.shape)
-            inputdata = skitransforms.resize(inputdata, output_shape=(256, 256))
-            labeldata = skitransforms.resize(labeldata, output_shape=(256, 256))
+            inputdata = skitransforms.resize(inputdata, output_shape=o.opt.c_size)
+            labeldata = skitransforms.resize(labeldata, output_shape=o.opt.c_size)
             #print(inputdata.shape)
             #print(labeldata.shape)
             labeldata = np.transpose(labeldata.copy(), (2, 0, 1))
@@ -186,19 +190,17 @@ class Deploy(object):
         '''
 
 
-#options must be same for model as the loaded model.!
-o = OptionsHome()
-o.parse()
+
 
 #path to whichever model you want. usually will live in a ehckpoint
-checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/new3-pawsey-Tue-Jun-25-08:03:16-2019/checkpoints/checkpoint.pt')
+checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/low_param-pawsey-Tue-Aug-20-00:16:19-2019/checkpoints/checkpoint.pt')
 
 model = m.CapsNet(o.opt)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to('cuda')
 
 #this should be the testsamples from your loaded model
-testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/new3-pawsey-Tue-Jun-25-08:03:16-2019/testsamples')
+testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/low_param-pawsey-Tue-Aug-20-00:16:19-2019/testsamples')
 
 d = Deploy(o.opt, model, testnames)
 

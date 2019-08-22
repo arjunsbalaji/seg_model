@@ -30,15 +30,15 @@ def waitforbuttonpress():
 
 fig.canvas.mpl_connect('close_event', handle_close)
 
-i=200
+i=0
 while True:
     name = dicenames[i]
     image = np.array(d.print_pred(name)[0])[0,0]
 
-    capsout = np.array(d.print_pred(name, threshold=0.90)[1])[0,0]
+    capsout = np.array(d.print_pred(name, threshold=0.20)[1])[0,0]
     mask = np.ma.masked_where(capsout==0,capsout)
     
-    mag = np.array(d.print_pred(name, threshold=0.95)[3])[0,0]
+    mag = np.array(d.print_pred(name, threshold=0.20)[3])[0,0]
     mag = filters.sobel(mag)
     #mag[mag>0.2] = 1
     #mag[mag<0.2] = 0

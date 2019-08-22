@@ -117,7 +117,7 @@ class Train(object):
                                      self.opt.name,
                                      'analysis',
                                      'gpumemlogs.npy'),
-                        np.array(self.col_losses1))
+                        np.array(self.logs))
 
     def train_step(self, sample):
         input_data = sample['input']
