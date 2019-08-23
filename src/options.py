@@ -217,8 +217,8 @@ class OptionsA():
             self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
             self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves'
         elif self.opt.location == 'pawsey':
-            self.opt.dataroot = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
-            self.opt.runsaves_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'
+            self.opt.dataroot = '/group/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
+            self.opt.runsaves_dir = '/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'
         elif self.opt.location == 'laptop':
             self.opt.dataroot ='/media/arjunbalaji/Arjun1TB/VascLabData/OCT MACHINA DATA/train_data' 
             self.opt.runsaves_dir = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves'
