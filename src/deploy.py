@@ -193,14 +193,14 @@ class Deploy(object):
 
 
 #path to whichever model you want. usually will live in a ehckpoint
-checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/low_param-pawsey-Tue-Aug-20-00:16:19-2019/checkpoints/checkpoint.pt')
+checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final-pawsey/checkpoints/checkpoint.pt')
 
 model = m.CapsNet(o.opt)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to('cuda')
 
 #this should be the testsamples from your loaded model
-testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/low_param-pawsey-Tue-Aug-20-00:16:19-2019/testsamples')
+testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final-pawsey/testsamples')
 
 d = Deploy(o.opt, model, testnames)
 
