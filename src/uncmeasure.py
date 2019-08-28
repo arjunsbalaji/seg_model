@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Tue Aug 27 17:12:18 2019
+
+@author: arjun
+"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Tue Aug 25 18:49:40 2019
 
 @author: arjun
 """
-#DEPLOY is to test the model on untransfromed members of the test set
+#uncertaintymeasure
 #IT ONLY WORKS ON THE HOME COMPUTER!!!!!!
 
 import torch
@@ -21,6 +28,8 @@ import skimage.transform as skitransforms
 from bayes_opt import BayesianOptimization
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
+import json
+
 warnings.simplefilter('ignore')
 
 
@@ -51,6 +60,7 @@ def spec(c,l):
     union = torch.sum(c) + torch.sum(l) - intersection
     loss = (intersection) / (union)
     return loss
+
 
 class DeployOCTDataset(Dataset):
     """
@@ -134,8 +144,7 @@ class DeployOCTDataset(Dataset):
         data points we have in our dataset"""
         return len(self.names)
 
-
-class Deploy(object):
+class UncMeasure(object):
     def __init__(self, opt, model, testnames, dataset):
         self.opt = opt
         self.model = model
@@ -258,15 +267,52 @@ class Deploy(object):
     
     def thresh(self, threshold):
         c = torch.tensor(self.caps.detach())
-        c[c>=threshold] = 1
+        c[c>threshold] = 1
         c[c<threshold] = 0
         return 1-self.loss_fn1(c, self.labeldata)
+    
+    def calc_unc(self, capsout, l, u):
+        #capsout from model, thresh from othresh dict, alpha float (0,1)
+        #c1 = torch.tensor(capsout.detach())
+        c2 = np.array(capsout.detach())
         
-    def deploy(self, threshold=False, bayes=None): #threshold only affects accuracy not dice
         '''
-        kwargs can be;
-            1. var{bayes}: {'bo':, BO object, 'niters': int,'init_points':int} or None
+        c1[c1>thresh] = 1
+        c1[c1<thresh] = 0
         
+        secthresh = alpha*thresh
+        
+        c2[c2>secthresh] = 1
+        c2[c2<secthresh] = 0
+        
+        
+        c1 = np.ma.masked_greater(c1,thresh)
+        c1 = np.ma.getmaskarray(c1) * np.ma.getdata(c2)
+        '''
+        
+        #secthresh = alpha*thresh
+        maxx = c2.max()
+        la = maxx * l
+        ua = maxx * u
+        
+        c2 = np.ma.masked_outside(c2, la, ua)
+        #c2 = np.ma.masked_less(c2,0.01)
+        #c2 = np.ma.getmaskarray(c2) * np.ma.getdata(c2)
+        
+
+        
+        return float(c2.mean()), float(c2.sum()), float(c2.std())
+        
+        
+        #print(c1.sum(), c2.sum())
+        
+        #return float(np.std(c2))
+        #return float(torch.sum(c2-c1)), float(torch.sum(c1)), float(np.std(np.array(c2-c1)))
+    
+    
+    def deploy(self, thresholds=False, alpha=None): 
+        '''
+        thresholds has to be a optimized thresholds dictionary
         '''
         starttime = time.time()
         
@@ -281,16 +327,15 @@ class Deploy(object):
         self.col_lossestotal = []
         
         self.softdicepairs = {}
-        self.optimizedthresholds={}
-        
         self.harddicepairs = {}
         self.accpairs = {}
         self.senspairs = {}
         self.specpairs = {}
         
+        self.othresh = thresholds #dict of optimized threshs from delpoyBAYES
+        self.alpha =alpha #factor of uncertainty you wanna investigate
         
-        self.bayes = bayes
-        
+        self.uncpairs = {}
         
         for i, sample in enumerate(self.deployloader):
             imtime=time.time()
@@ -322,59 +367,30 @@ class Deploy(object):
             self.col_losses2.append(loss2.data)
             self.col_losses3.append(loss3.data)
             self.col_lossestotal.append(loss.data)
-            
-            #bayecapsout = capsout
-            #print(time.time()-imtime)
-            if self.bayes is not None:
-                BAYESoptim = BayesianOptimization(f=bayesparam['f'],
-                                                  pbounds=bayesparam['pbounds'],
-                                                  random_state = bayesparam['random_state'],
-                                                  verbose=0)
-                
-                
-                BAYESoptim.maximize(
-                        init_points=bayesparam['init_points'],
-                        n_iter=bayesparam['n_iter'])
-            
-                #print(name, BAYESoptim.max, time.time()-imtime)
-                #print(name, BAYESoptim.max, time.time()-imtime)
-                
-            if threshold:
+                       
+            if self.othresh is not None:
                 #if threhsold = float [0,1] this will execute
                 c = torch.tensor(self.caps.detach())
-                t=threshold
-                if threshold=='mean':
-                    t = float(torch.mean(c))
+                t=self.othresh[name]
                 
-                elif threshold=='bayes':
-                    t=BAYESoptim.max['params']['threshold']
-                    self.harddicepairs[name]=BAYESoptim.max['target']
-                    self.optimizedthresholds[name]=t
-                    #print(threshold)
-                
-                
+                unc = self.calc_unc(c, t, self.alpha)
+                self.uncpairs[name]=unc
+                '''
                 c[c>t] = 1
                 c[c<t] = 0
                 total = (c == labeldata).sum()
                 self.senspairs[name] = float(sens(c,labeldata))
                 self.specpairs[name] = float(spec(c,labeldata))
                 self.accpairs[name] = int(total) / np.prod(labeldata.size()[2:4])
-
+                '''
             #print(loss1.data)
             #self.dicepairs[name] = np.array(loss1.data)[0].astype(float)
-            #print(name, time.time()-imtime)
+            
+            #print(name, t, time.time()-imtime)
             
             #print(name, 'DONE')
         self.endtime = time.time()-starttime
-        self.col_losses1 = np.array(self.col_losses1)
-        self.col_losses2 = np.array(self.col_losses2)
-        self.col_losses3 = np.array(self.col_losses3)
-        self.col_lossestotal = np.array(self.col_lossestotal)
-        
-        
-        for name, loss in zip(self.dataset.names, 1-self.col_losses1):
-            self.softdicepairs[name] = loss
-            
+
         return capsout, recon
         '''
         sys.stdout.write('Mean ' + str(1-np.mean(self.col_losses1)) + '\n' + \
@@ -400,62 +416,32 @@ model.to('cuda')
 #this should be the testsamples from your loaded model
 testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/testsamples')
 
-
 #this probs wont exist yet!!!
-diceorderednames = np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy')
+dicenames = list(np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy'))
+
+#load opimized threshold from deployBAYES run If no bayes then ignore this(youll get an error here)
+f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/optimizedthresholds.json")
+othresh = json.load(f)
+f.close()
 
 
-#deploydata = DeployOCTDataset(data_dir, diceorderednames[0:3])
-deploydata = DeployOCTDataset(data_dir, testnames)
-d = Deploy(o.opt, model, testnames, deploydata)
+deploydata = DeployOCTDataset(data_dir, dicenames)
+d = UncMeasure(o.opt, model, testnames, deploydata)
 
+d.deploy(othresh, alpha=0.5) 
+'''
+othresholds has to be optimized threshold dict. So can only run this once
+deployBAYES has been run and you have a saved dict.
+'''
 
-#for bayes in deploy
-bayesparam = {'f':d.thresh,
-              'pbounds':{'threshold':(0.01,0.999)},
-              'random_state': None,
-              'init_points': 5,
-              'n_iter':6}
+unc = []
+hardd = []
+for k,v in d.uncpairs.items():
+    unc.append(d.uncpairs[k])
+    hardd.append(harddice[k])
 
+thresh = []
+for k,v in d.uncpairs.items():
+    thresh.append(othresh[k])
 
-#d.deploy(testnames, 0.95) #can omit threshold.
-#d.deploy(diceorderednames[:5])
-#d.deploy(testnames, None, bayes=bayes)
-
-
-
-d.deploy(threshold='bayes', bayes = bayesparam) 
-#d.deploy(diceorderednames[0:10], threshold='bayes', bayes = bayesparam) 
-#threshold = 'float' [0,1] or 'mean' or 'bayes'
-#    > if 'bayes' bayes param must be selected
-#d.deploy(testnames, threshold='mean', bayes = bayesparam) #only bayesparam for bayes variable
-
-
-dices = 1-d.col_losses1
-sys.stdout.write('Below is for the Soft Dice Scores' + '\n' + \
-                 'Mean ' + str(np.mean(dices)) + '\n' + \
-                 'Std ' + str(np.std(dices)) + '\n' + \
-                 'Max ' +str(np.max(dices)) + '\n' + \
-                 'Min ' + str(np.min(dices)) + '\n')
-
-softiceorderednames = sorted(d.softdicepairs, key=d.softdicepairs.get) #orders names worst to best
-accorderednames = sorted(d.accpairs, key=d.accpairs.get)
-
-u0d = d.softdicepairs
-u0a = d.accpairs
-
-def jsonsavedict(dictionary, name):
-    #dictionary is a dict, name is a string 
-    aaa = json.dumps(dictionary)
-    f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/" + name + ".json","w")
-    f.write(aaa)
-    f.close()
-    
-
-jsonsaveddict(d.softdicepairs, 'softdicepairs')
-jsonsaveddict(d.harddicepairs, 'harddicepairs')
-jsonsaveddict(d.accpairs, 'accpairs')
-jsonsaveddict(d.sensepairs, 'sensepairs')
-jsonsaveddict(d.specpairs, 'specpairs')
-jsonsaveddict(d.optimizedthresholds, 'optimizedthresholds')
 
