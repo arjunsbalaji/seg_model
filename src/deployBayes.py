@@ -16,7 +16,7 @@ import sys
 import shutil
 import warnings
 import model as m
-from options import OptionsHome
+from options import OptionsA #OptionsHome for at home
 import skimage.transform as skitransforms
 from bayes_opt import BayesianOptimization
 from torch.utils.data import Dataset
@@ -28,7 +28,7 @@ torch.manual_seed(7)
 np.random.seed(7)
 
 #options must be same for model as the loaded model.!
-o = OptionsHome()
+o = OptionsA()  #OptionsHome for at home
 o.parse()
 
 
@@ -337,7 +337,7 @@ class Deploy(object):
                         n_iter=bayesparam['n_iter'])
             
                 #print(name, BAYESoptim.max, time.time()-imtime)
-                #print(name, BAYESoptim.max, time.time()-imtime)
+                print(name, BAYESoptim.max, time.time()-imtime)
                 
             if threshold:
                 #if threhsold = float [0,1] this will execute
@@ -391,18 +391,20 @@ data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
  
  
 #path to whichever model you want. usually will live in a ehckpoint
-checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')
+#checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')
+checkpoint = torch.load('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/checkpoints/checkpoint.pt')
+
 
 model = m.CapsNet(o.opt)
 model.load_state_dict(checkpoint['model_state_dict'])
 model.to('cuda')
 
 #this should be the testsamples from your loaded model
-testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/testsamples')
+testnames = os.listdir('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/testsamples')
 
 
 #this probs wont exist yet!!!
-diceorderednames = np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy')
+#diceorderednames = np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy')
 
 
 #deploydata = DeployOCTDataset(data_dir, diceorderednames[0:3])
@@ -447,7 +449,8 @@ u0a = d.accpairs
 def jsonsavedict(dictionary, name):
     #dictionary is a dict, name is a string 
     aaa = json.dumps(dictionary)
-    f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/" + name + ".json","w")
+    #f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/" + name + ".json","w")
+    f = open("/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/analysis/" + name + ".json","w")
     f.write(aaa)
     f.close()
     
