@@ -16,10 +16,14 @@ import sys
 import shutil
 import warnings
 import model as m
-from options import OptionsA #OptionsHome for at home
+from options import OptionsHome #OptionsHome for at home
 import skimage.transform as skitransforms
 from bayes_opt import BayesianOptimization
 from torch.utils.data import Dataset
+
+
+import json 
+
 from torch.utils.data import DataLoader
 warnings.simplefilter('ignore')
 
@@ -28,7 +32,7 @@ torch.manual_seed(7)
 np.random.seed(7)
 
 #options must be same for model as the loaded model.!
-o = OptionsA()  #OptionsHome for at home
+o = OptionsHome()  #OptionsHome for at home
 o.parse()
 
 
@@ -291,7 +295,7 @@ class Deploy(object):
         
         self.bayes = bayes
         
-        
+        jjj=10
         for i, sample in enumerate(self.deployloader):
             imtime=time.time()
             inputdata = sample['deployin']
@@ -328,10 +332,10 @@ class Deploy(object):
             if self.bayes is not None:
                 BAYESoptim = BayesianOptimization(f=bayesparam['f'],
                                                   pbounds=bayesparam['pbounds'],
-                                                  random_state = bayesparam['random_state'],
+                                                  random_state = jjj,
                                                   verbose=0)
                 
-                
+                jjj+=1
                 BAYESoptim.maximize(
                         init_points=bayesparam['init_points'],
                         n_iter=bayesparam['n_iter'])
@@ -391,8 +395,8 @@ data_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
  
  
 #path to whichever model you want. usually will live in a ehckpoint
-#checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')
-checkpoint = torch.load('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/checkpoints/checkpoint.pt')
+checkpoint = torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')
+#checkpoint = torch.load('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/checkpoints/checkpoint.pt')
 
 
 model = m.CapsNet(o.opt)
@@ -400,15 +404,15 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.to('cuda')
 
 #this should be the testsamples from your loaded model
-testnames = os.listdir('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/testsamples')
-
+#testnames = os.listdir('/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/testsamples')
+testnames = os.listdir('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/testsamples')
 
 #this probs wont exist yet!!!
-#diceorderednames = np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy')
+diceorderednames = np.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/diceordered.npy')
 
 
-#deploydata = DeployOCTDataset(data_dir, diceorderednames[0:3])
 deploydata = DeployOCTDataset(data_dir, testnames)
+#deploydata = DeployOCTDataset(data_dir, testnames)
 d = Deploy(o.opt, model, testnames, deploydata)
 
 
@@ -417,7 +421,7 @@ bayesparam = {'f':d.thresh,
               'pbounds':{'threshold':(0.01,0.999)},
               'random_state': None,
               'init_points': 5,
-              'n_iter':6}
+              'n_iter':5}
 
 
 #d.deploy(testnames, 0.95) #can omit threshold.
@@ -446,11 +450,11 @@ accorderednames = sorted(d.accpairs, key=d.accpairs.get)
 u0d = d.softdicepairs
 u0a = d.accpairs
 
-def jsonsavedict(dictionary, name):
+def jsonsaveddict(dictionary, name):
     #dictionary is a dict, name is a string 
     aaa = json.dumps(dictionary)
-    #f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/" + name + ".json","w")
-    f = open("/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/analysis/" + name + ".json","w")
+    f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/" + name + ".json","w")
+    #f = open("/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves/Final1-pawsey/analysis/" + name + ".json","w")
     f.write(aaa)
     f.close()
     
@@ -458,7 +462,7 @@ def jsonsavedict(dictionary, name):
 jsonsaveddict(d.softdicepairs, 'softdicepairs')
 jsonsaveddict(d.harddicepairs, 'harddicepairs')
 jsonsaveddict(d.accpairs, 'accpairs')
-jsonsaveddict(d.sensepairs, 'sensepairs')
+jsonsaveddict(d.senspairs, 'sensepairs')
 jsonsaveddict(d.specpairs, 'specpairs')
 jsonsaveddict(d.optimizedthresholds, 'optimizedthresholds')
 

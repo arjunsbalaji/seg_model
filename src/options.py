@@ -141,7 +141,7 @@ class OptionsA():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='Final', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='Final1', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/run_saves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')

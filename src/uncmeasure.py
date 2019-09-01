@@ -425,23 +425,26 @@ othresh = json.load(f)
 f.close()
 
 
-deploydata = DeployOCTDataset(data_dir, dicenames)
-d = UncMeasure(o.opt, model, testnames, deploydata)
+deploydata = DeployOCTDataset(data_dir, testnames)
+uncd = UncMeasure(o.opt, model, testnames, deploydata)
 
-d.deploy(othresh, alpha=0.5) 
+uncd.deploy(othresh, alpha=0.5) 
 '''
 othresholds has to be optimized threshold dict. So can only run this once
 deployBAYES has been run and you have a saved dict.
 '''
 
+f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/hardicepairs.json")
+harddice = json.load(f)
+f.close()
+
+
 unc = []
 hardd = []
-for k,v in d.uncpairs.items():
-    unc.append(d.uncpairs[k])
-    hardd.append(harddice[k])
-
 thresh = []
-for k,v in d.uncpairs.items():
+for k,v in uncd.uncpairs.items():
+    unc.append(uncd.uncpairs[k])
+    hardd.append(harddice[k])
     thresh.append(othresh[k])
 
 

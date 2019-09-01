@@ -61,7 +61,8 @@ class Train(object):
         if self.opt.logging:
             self.logs = []
             
-            
+        self.worsttobest = {}
+        
         if self.opt.loadcheckpoint is not None:
             epochs = range(self.checkpoint['epoch'], self.checkpoint['epoch']+self.opt.epochs)
         else:
@@ -83,7 +84,7 @@ class Train(object):
 
                 if self.opt.logging:
                     self.logs.append(torch.cuda.memory_allocated()/torch.cuda.memory_cached())
-                    
+                        
             self.traintime = time.time() - starttime
             sys.stdout.write('ave sample time: ' + str(self.traintime/ ((epoch + 1) * len(self.trainloader))) + '\n')
             
