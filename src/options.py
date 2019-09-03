@@ -387,7 +387,7 @@ class OptionsHome():
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
         self.parser.add_argument('--epochs', type=int, default=1, help='number of training epochs. Test epochs is always 1')
-        self.parser.add_argument('--batch_size', type=int, default=1, help='input batch size')
+        self.parser.add_argument('--batch_size', type=int, default=2, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
         self.parser.add_argument('--transforms', type=bool, default=True, help='Whether to use transforms on data. False for testing.')
