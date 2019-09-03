@@ -50,12 +50,15 @@ fig.canvas.mpl_connect('close_event', handle_close)
 fig, (axim, ax) = plt.subplots(nrows=1, ncols=2, figsize=(3, 2),
                         subplot_kw={'xticks': [], 'yticks': []})
 
-i=150
+i=15
+
+
+namegvng = []
 while True:
     name = dicenames[i]
-
+    namegvng.append(name)
     
-    
+    thresholdo=othresh[name]
     image = np.array(d.pred_arrays(name)[0])[0,0]
     
     capsout = np.array(d.pred_arrays(name, threshold=False)[1])[0,0]
@@ -73,7 +76,8 @@ while True:
     la = ax.imshow(mask, 'gray', interpolation='none')
     acla = ax.imshow(mal, 'RdYlGn', interpolation='none')
     
-    ax.set_title('Unthresholded' + '    ' + str(np.round(harddice[name],4)),size=9)
+    axim.set_title('Image:' + name,size=9)
+    ax.set_title('Dice:' + str(np.round(harddice[name],4)) + '   OT:' + str(np.round(thresholdo,4)),size=9)
     
     plt.tight_layout()
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99, wspace=None, hspace=None)

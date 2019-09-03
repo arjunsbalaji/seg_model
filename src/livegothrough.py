@@ -44,7 +44,7 @@ def waitforbuttonpress():
 
 fig.canvas.mpl_connect('close_event', handle_close)
 
-i=10
+i=200
 while True:
     name = dicenames[i]
     thresholdo = othresh[name]
@@ -62,7 +62,7 @@ while True:
 
     im = ax.imshow(image, 'gray', interpolation='none')
     
-    la = ax.imshow(mask, 'RdYlGn', interpolation='none', alpha=0.7)
+    la = ax.imshow(mask, 'RdYlGn', interpolation='none', alpha=0.5)
     #la = ax.imshow(mask, 'gray', interpolation='none') use this for no thresh
     
     acla = ax.imshow(mal, 'inferno', interpolation='none')#RdYlGn

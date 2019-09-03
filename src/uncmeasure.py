@@ -373,7 +373,8 @@ class UncMeasure(object):
                 c = torch.tensor(self.caps.detach())
                 t=self.othresh[name]
                 
-                unc = self.calc_unc(c, t, self.alpha)
+                #unc = self.calc_unc(c, t, self.alpha)
+                unc = self.calc_unc(c, 0.05, self.alpha)
                 self.uncpairs[name]=unc
                 '''
                 c[c>t] = 1
@@ -428,7 +429,7 @@ f.close()
 deploydata = DeployOCTDataset(data_dir, testnames)
 uncd = UncMeasure(o.opt, model, testnames, deploydata)
 
-uncd.deploy(othresh, alpha=0.5) 
+uncd.deploy(othresh, alpha=0.95) 
 '''
 othresholds has to be optimized threshold dict. So can only run this once
 deployBAYES has been run and you have a saved dict.
