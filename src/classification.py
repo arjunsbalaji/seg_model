@@ -17,6 +17,9 @@ from sklearn import preprocessing
 import skimage.transform as skitransforms
 from options import OptionsHome
 
+
+starting = time.time()
+
 class RandomSingleImageCrop(object):
     """Rescale the image in a sample to a given size.
 
@@ -82,13 +85,14 @@ class OCTClassificationDataset(Dataset):
     
     def visualise3(self, idx):
         
+        
         sample = self.__getitem__(idx)
         #print(sample['input'].size())
         #print(sample['label'].size())
         input_data = sample['input'].cpu().numpy()[0,:,:]
         label = sample['label']
         
-        if label[0]==1:
+        if label==0:
             label='easy'
         else:
             label='hard'
@@ -166,7 +170,7 @@ class OCTClassificationDataset(Dataset):
         image = np.transpose(image.copy(), (2, 0, 1))
         #og = preprocessing.MinMaxScaler(og)
         
-        sample = {'input': torch.tensor(image),
+        sample = {'input': torch.tensor(image).float(),
                   'label': torch.tensor(label),
                   'case_name': name}
 
@@ -183,9 +187,17 @@ f.close()
 
 for k,v in softdice.items():
     if v<0.96:
-        softdice[k] = 9.3656 * np.array([0,1]) # 9.3656 is class imbalance coefficient
+        softdice[k] = 1 # 9.3656 is class imbalance coefficient
     else:
-        softdice[k] = np.array([1,0])
+        softdice[k] = 0
+
+#all the ones that are hard
+hardnames=[]
+for k,v in softdice.items():
+    if v!=0:
+        hardnames.append(k)
+
+
 
 o = OptionsHome()
 o.parse()
@@ -197,6 +209,8 @@ oct_class_dataset = OCTClassificationDataset(image_data_dir=image_dir,
                                              start_size=o.opt.start_size,
                                              cropped_size=o.opt.c_size,
                                              transform=True)
+
+hardindices = [oct_class_dataset.name_list.index(i) for i in hardnames]
 
 class LinReluD(torch.nn.Module):
     """New linear block for my classification network"""
@@ -340,11 +354,13 @@ class ClassifyCapsNet(torch.nn.Module):
         
         #lin1in = int(self.opt.batch_size * np.prod(list(capsbot_params.values())))
         lin1in = int(np.prod(list(capsbot_params.values())))
-        self.lin1 = LinReluD(lin1in, 5000)
-        self.lin2 = LinReluD(5000, 5000)
-        self.lin3 = LinReluD(5000, 2)
+        self.lin1 = LinReluD(lin1in, 1000)
+        self.lin2 = LinReluD(1000, 1000)
+        self.lin3 = LinReluD(1000, 2)
         
     def forward(self, x):
+        
+        inbatch=x.size()[0]
         x = self.get_prim_caps(x)
         #x_prim = x
         #print(x.size(),'0')
@@ -375,26 +391,60 @@ class ClassifyCapsNet(torch.nn.Module):
 
         x = self.get_abstract_caps_bot(x)
         
-        x = x.view([self.opt.batch_size, -1])
-        print(x.size())
+        x = x.view([inbatch, -1])
+        #print(x.size())
         x = self.lin1(x)
-        print(x.size())
+        #print(x.size())
         x = self.lin2(x)
-        print(x.size())
+        #print(x.size())
         x = self.lin3(x)
-        print(x.size())        
+        #print(x.size())        
         return x
+
+
+transfer_model_dict= torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')['model_state_dict']
 
 cappy = ClassifyCapsNet(o.opt)
 cappy = cappy.to(o.opt.device)
+cappy.load_state_dict(transfer_model_dict, strict=False)
 
-loady=DataLoader(oct_class_dataset, batch_size=o.opt.batch_size, shuffle=False)
+traind, vald = torch.utils.data.random_split(oct_class_dataset, [1922,481])
 
-for i, sample in enumerate(loady):
-    inny = sample['input'].float().to(o.opt.device)
-    label = sample['label'].float().to(o.opt.device)
+trainloady=DataLoader(traind, batch_size=int(o.opt.batch_size), shuffle=True)
+
+valloady = DataLoader(vald, batch_size=1, shuffle=False)
+
+cross = torch.nn.CrossEntropyLoss()
+optim = torch.optim.Adam(cappy.parameters(), lr=0.001)
+
+trainingloss = []
+valloss = {}
+for epoch in range(1):
+    for i, sample in enumerate(trainloady):
+        inny = sample['input'].to(o.opt.device)
+        label = sample['label'].to(o.opt.device)
+        
+        optim.zero_grad()
+        
+        outgvng = cappy(inny)
+        loss = cross(outgvng, label)
+        loss.backward()
+        trainingloss.append(float(loss.data))
+        optim.step()
+        
+    print('val')
+    cappy.eval()    
+    for i, sample in enumerate(valloady):
+        inny = sample['input'].to(o.opt.device)
+        label = sample['label'].to(o.opt.device)
+        
+        outgvng = cappy(inny)
+        pres = torch.argmax(outgvng, 1)
+        
+        valloss[sample['case_name'][0]]=bool((pres==label).cpu())
+        
+        
+        
     
-    outgvng = cappy(inny)
-    break
-
+print(time.time()-starting)
 

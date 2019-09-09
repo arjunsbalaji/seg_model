@@ -6,21 +6,19 @@ Created on Tue May 21 18:27:41 2019
 @author: arjun
 """
 
-import torch
+import torch, time, os, sys
 import torch.utils.data.sampler as sampler
-import time
 import numpy as np
-import os 
-import sys
-import shutil
-import warnings
 import model as m
-
+from functools import partial
+import jutils as j
 
 start_time = time.time()
 
+
+
 class Train(object):
-    def __init__(self, opt, model, traindata, valdata, trainsetsize, valsetsize, experiment, checkpoint):
+    def __init__(self, opt, model, traindata, valdata, trainsetsize, valsetsize, checkpoint):
         self.opt = opt
         self.model = model
         self.traindata = traindata
@@ -32,18 +30,25 @@ class Train(object):
         #self.loss_fn3 = torch.nn.MSELoss(size_average=True)
         self.loss_fn2 = torch.nn.BCELoss(size_average=False)
         self.loss_fn3 = torch.nn.MSELoss(size_average=False)
-        self.experiment = experiment
         self.checkpoint = checkpoint
+        
+        self.sched = j.combine_scheds([0.3, 0.7], [j.sched_cos(0.0001, 0.6), j.sched_cos(0.6, 2e-06)])
+        
         
     def train(self):
         
         starttime = time.time()
+        
+        self.lrs_log = []
         
         self.trainloader = torch.utils.data.DataLoader(self.traindata,
                                                        batch_size = self.opt.batch_size,
                                                        shuffle= False)#,
                                                        #sampler = sampler.SubsetRandomSampler(self.trainsetsize))
 
+        
+
+        
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.opt.lr)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min', patience=5, verbose=True)
         
@@ -63,47 +68,63 @@ class Train(object):
             
         self.worsttobest = {}
         
+        
         if self.opt.loadcheckpoint is not None:
             epochs = range(self.checkpoint['epoch'], self.checkpoint['epoch']+self.opt.epochs)
         else:
             epochs = range(self.opt.epochs)
-            
+        
+        #make this len (traindataset) for pawsey
+
+        total_len = len(self.trainsetsize)
+        batches_per_epoch = total_len / self.opt.batch_size
+        
+        
         for epoch in epochs:
             sys.stdout.write('Epoch ' + str(epoch) + '\n')
             
             self.model.train()
+            
+            self.iter = 0.
+            
+            
             for i, sample in enumerate(self.trainloader):
-
+                
+                self.lr_last = self.sched(self.iter)
+                self.lrs_log.append(self.lr_last)
+                self.optimizer.param_groups[0]['lr'] = self.lr_last
+                
                 loss1, loss2, loss3 = self.train_step(sample)
                 
-                self.col_losses1.append(1-loss1.data)
-                self.col_losses2.append(loss2.data)
-                self.col_losses3.append(loss3.data)
-                self.col_lossestotal.append(self.loss.data)
+                self.col_losses1.append(1-loss1.item())
+                self.col_losses2.append(loss2.item())
+                self.col_losses3.append(loss3.item())
+                self.col_lossestotal.append(self.loss.item())
                 #self.experiment.log_metric('training-dice')
-
+                
+                self.iter += 1/batches_per_epoch
+                
+                #sched doesnt work if iter >1 so just to make sure, but this shouldnt ever execute
+                if self.iter > 1:
+                    self.iter=0.999
+                
                 if self.opt.logging:
                     self.logs.append(torch.cuda.memory_allocated()/torch.cuda.memory_cached())
                         
             self.traintime = time.time() - starttime
             sys.stdout.write('ave sample time: ' + str(self.traintime/ ((epoch + 1) * len(self.trainloader))) + '\n')
-            
+            sys.stdout.write('total epoch time: ' + str(self.traintime) + '\n')
             
             
             
             
             self.model.eval()
-            valdata = self.validate()
-            self.val_loss_data.append([valdata])
+            val_recorded = self.validate()
+            self.val_loss_data.append([val_recorded])
             
             
-            self.scheduler.step(self.loss.data)
+            #self.scheduler.step(self.loss.data)
             
-            if self.opt.comet:
-                self.experiment.log_metric('val_dice', valdata[0])
-                self.experiment.log_metric('va_lbce', valdata[1])
-                self.experiment.log_metric('val_recon', valdata[2])
-                self.experiment.log_metric('val_total', valdata[3])
         
 
         if self.opt.save:
@@ -121,6 +142,7 @@ class Train(object):
                         np.array(self.logs))
 
     def train_step(self, sample):
+        
         input_data = sample['input']
         input_data = input_data.to(self.opt.device)
 
@@ -171,7 +193,7 @@ class Train(object):
 
         self.valloader = torch.utils.data.DataLoader(self.valdata,
                                                      batch_size = self.opt.batch_size,
-                                                     shuffle= False)#,
+                                                     shuffle= False)#),
                                                      #sampler = sampler.SubsetRandomSampler(self.valsetsize))
         
         self.valcol_losses1 = []
@@ -211,12 +233,18 @@ class Train(object):
             
             self.valloss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
             
-            self.valcol_losses1.append(1-loss1.data)
-            self.valcol_losses2.append(loss2.data)
-            self.valcol_losses3.append(loss3.data)
-            self.valcol_lossestotal.append(self.valloss.data)
+            self.valcol_losses1.append(1-loss1.item())
+            self.valcol_losses2.append(loss2.data.item())
+            self.valcol_losses3.append(loss3.data.item())
+            self.valcol_lossestotal.append(self.valloss.item())
             
         sys.stdout.write('Average Validation loss for epoch:' + str(np.mean(self.valcol_losses1)) \
                          + ', validation took '+ str(time.time()-starttime) + 'secs ' + '\n' + '\n')
+        
+        
+        self.valcol_losses1 = np.array(self.valcol_losses1)
+        self.valcol_losses2 = np.array(self.valcol_losses2)
+        self.valcol_losses3 = np.array(self.valcol_losses3)
+        self.valcol_lossestotal = np.array(self.valcol_lossestotal)
         
         return [np.mean(self.valcol_losses1), np.mean(self.valcol_losses2), np.mean(self.valcol_losses3), np.mean(self.valcol_lossestotal)]

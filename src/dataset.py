@@ -22,6 +22,20 @@ from skimage.filters import gaussian
 def get_image(main_data_dir, name, image_type):
     this_data_path = os.path.join(main_data_dir, image_type)
     return np.load(os.path.join(this_data_path, name))
+
+
+def normalize(octimage):
+    means = octimage.view(3,-1).mean(-1)
+    stds = octimage.view(3,-1).std(-1)
+    return (octimage - means[:,None,None])/stds[:,None,None]
+
+
+def get_subnamelists(total_names,val_start,val_end):
+    total=len(total_names)
+    starti, endi = int(total * val_start), int(total * val_end)
+    vallist=total_names[starti:endi]
+    total_names[starti:endi] = []
+    return total_names, vallist
 ###############################################################################
 class RandomCrop(object):
     """Rescale the image in a sample to a given size.
@@ -87,6 +101,7 @@ class OCTDataset(Dataset):
     """
     def __init__ (self,
                   main_data_dir,
+                  name_list,
                   start_size,
                   cropped_size,
                   transform,
@@ -102,14 +117,15 @@ class OCTDataset(Dataset):
         self.pvflip = np.random.rand()
         self.spnoise = SPNoise(1)
         
+        '''
         #iterate through the 2d images and get all their names
         name_list = []
         for im in os.listdir(os.path.join(self.main_data_dir, 'images')):
             filename = os.fsdecode(im)
             name_list.append(filename)
-            
+        ''' 
         self.name_list = name_list
-    
+        
     def visualise(self, idx):
         
         sample = self.__getitem__(idx)
@@ -133,7 +149,7 @@ class OCTDataset(Dataset):
                    aspect = 'equal')
         
         
-        combined = input_data + 1 * l_data 
+        combined = input_data + 10 * l_data 
         
         ax1comb.imshow(combined, aspect = 'equal')
         plt.show()
@@ -207,8 +223,10 @@ class OCTDataset(Dataset):
         image = np.transpose(image.copy(), (2, 0, 1))
         #og = preprocessing.MinMaxScaler(og)
         
+        image = torch.tensor(image).float()
+        image = normalize(image)
         
-        sample = {'input': torch.tensor(image).float()[self.input_images],
+        sample = {'input': image[self.input_images],
                   'label': torch.tensor(label).float(),
                   'case_name': name}
 

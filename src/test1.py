@@ -6,21 +6,18 @@ Created on Tue May 21 22:40:55 2019
 @author: arjun
 """
 
-import torch
+import torch, os, sys, time
 import torch.utils.data.sampler as sampler
-import time
 import numpy as np
-import os 
-import sys
-import shutil
-import warnings
 import model as m
+import jutils as j
+from pathlib import Path
 
 
 start_time = time.time()
 
 class Test(object):
-    def __init__(self, opt, model, testdata, setsize,  experiment):
+    def __init__(self, opt, model, testdata, setsize, thresholds):
         self.opt = opt
         self.model = model
         self.testdata = testdata
@@ -28,25 +25,17 @@ class Test(object):
         self.loss_fn1 = m.Dice_Loss()
         self.loss_fn2 = torch.nn.BCELoss(size_average=True)
         self.loss_fn3 = torch.nn.MSELoss(size_average=True)
-        self.experiment = experiment
         
-        if self.opt.save:
-            os.mkdir(os.path.join(self.opt.runsaves_dir,
-                                  self.opt.name,
-                                  'testsamples'))
-            self.testsamples = {}
+        self.thresholds = thresholds
+        
             
-        self.testloader = torch.utils.data.DataLoader(self.testdata,
-                                                      batch_size = self.opt.batch_size,
-                                                      shuffle= False)
-        
-
     def test(self):
         starttime = time.time()
         
         self.testloader = torch.utils.data.DataLoader(self.testdata,
-                                                      batch_size = self.opt.batch_size,
-                                                      shuffle= False)
+                                                      batch_size = 1,
+                                                      shuffle= False)#,
+                                                      #sampler = sampler.SubsetRandomSampler(self.setsize))
         
         
         
@@ -57,6 +46,13 @@ class Test(object):
         self.col_losses3 = []
         self.col_lossestotal = []
         
+        self.sensdata = {}
+        self.specdata = {}
+        self.paccdata = {}
+        self.dicedata = {}
+        
+        self.model.eval()
+        
         for i, sample in enumerate(self.testloader):
             input_data = sample['input']
             input_data = input_data.to(self.opt.device)
@@ -66,12 +62,14 @@ class Test(object):
             
             capsout, recon = self.model(input_data)
             
+            '''
             #print(self.testsamples,sample['case_name'])
             if self.opt.save:
                 self.testsamples[sample['case_name'][0]] = torch.tensor(
                         torch.cat((capsout.detach(),
                                    recon.detach()), dim=0))
-            
+            '''
+
 
             lumen_masked = input_data[:,0,:,:].unsqueeze(1) * label_data
             
@@ -82,36 +80,54 @@ class Test(object):
             
             self.loss = self.opt.la * loss1 + self.opt.lb * loss2 + self.opt.lc * loss3
 
-            self.col_losses1.append(loss1.data)
-            self.col_losses2.append(loss2.data)
-            self.col_losses3.append(loss3.data)
+            self.col_losses1.append(loss1.item())
+            self.col_losses2.append(loss2.item())
+            self.col_losses3.append(loss3.item())
             self.col_lossestotal.append(self.loss.data)
             self.testnames.append(sample['case_name'][0])
             
-            if self.opt.comet:
-                self.experiment.log_metric('test_dice', self.col_losses1[-1])
-                self.experiment.log_metric('test_lbce', self.col_losses2[-1])
-                self.experiment.log_metric('test_recon', self.col_losses3[-1])
-                self.experiment.log_metric('test_total', self.col_lossestotal[-1])
+            #for threshold in self.thresholds:
+            
+            #needs to be on cuda for broadcasting w capsout
+            self.thresholds = torch.tensor(self.thresholds).to(self.opt.device)
+            
+            threshed = j.scalar_thresh(capsout, self.thresholds).to(self.opt.device)
+            label_data = label_data[0]
+            sens = j.sens(threshed, label_data).cpu()
+            spec = j.spec(threshed, label_data).cpu()
+            p_acc = j.acc(threshed, label_data).cpu()
+            
+            
+            self.sensdata[['case_name'][0]] = list(np.array(sens).astype(float))
+            self.specdata[['case_name'][0]] = list(np.array(spec).astype(float))
+            self.paccdata[['case_name'][0]] = list(np.array(p_acc).astype(float))
+            self.dicedata[['case_name'][0]] = 1-loss1.item()
+            
             
             sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(1 - self.col_losses1[i]) + '\n')
             
         self.testtime = time.time()-starttime
             
-        sys.stdout.write('Mean ' + str(1-np.mean(self.col_losses1)) + '\n' + \
-                         'Std ' + str(np.std(self.col_losses1)) + '\n' + \
-                         'Max ' +str(1-np.max(self.col_losses1)) + '\n' + \
-                         'Min ' + str(1-np.min(self.col_losses1)) + '\n')
+        sys.stdout.write('Mean ' + str(1-np.mean(np.array(self.col_losses1))) + '\n' + \
+                         'Std ' + str(np.std(np.array(self.col_losses1))) + '\n' + \
+                         'Max ' +str(1-np.max(np.array(self.col_losses1))) + '\n' + \
+                         'Min ' + str(1-np.min(np.array(self.col_losses1))) + '\n')
         
         if self.opt.save:
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testDICElosses.npy'), np.array(self.col_losses1))
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testBCElosses.npy'), np.array(self.col_losses2))
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testRECONlosses.npy'), np.array(self.col_losses3))
-            np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testTOTALlosses.npy'), np.array(self.col_lossestotal))
-            #np.savetxt(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testnames.txt'), self.testnames)
+            savey = Path(self.opt.runsaves_dir+'/'+self.opt.name+'/analysis')
+            np.save(savey/'testDICElosses.npy', np.array(self.col_losses1))
+            np.save(savey/'testBCElosses.npy', np.array(self.col_losses2))
+            np.save(savey/'testRECONlosses.npy', np.array(self.col_losses3))
+            np.save(savey/'testTOTALlosses.npy', np.array(self.col_lossestotal))
             
+            j.jsonsaveddict(self.sensdata, savey, 'sensdata.json')
+            j.jsonsaveddict(self.specdata, savey, 'specdata.json')
+            j.jsonsaveddict(self.paccdata, savey, 'paccdata.json')
+            j.jsonsaveddict(self.dicedata, savey, 'dicedata.json')
+            
+            '''
             #now to save all the test predictions as their case name
             for name in self.testnames:
                 np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testNAMES.npy'), self.testnames)
                 np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples', name), self.testsamples[name].cpu().numpy())
-        
+            '''

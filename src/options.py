@@ -22,7 +22,7 @@ class Options():
     def initialize(self):
         self.parser.add_argument('--location', type=str, default='pawsey', help='home / pawsey / laptop')
         self.parser.add_argument('--dataroot', default='/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data', help='path to point clouds and labels. this is figured out depending on location')
-        self.parser.add_argument('--name', type=str, default='low_param', help='name of the experiment.')
+        self.parser.add_argument('--name', type=str, default='bangs', help='name of the experiment.')
         
         self.parser.add_argument('--runsaves_dir', type=str, default='/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves', help='models are saved here. this is figured out depending on location')
         self.parser.add_argument('--save', type=bool, default=True, help='Whether to save checkpoints and analysis')
@@ -35,7 +35,7 @@ class Options():
         self.parser.add_argument('--val', type=bool, default=True, help='True to validate, False to not.')
         self.parser.add_argument('--test', type=bool, default=True, help='True to test, False to not.')
         
-        self.parser.add_argument('--epochs', type=int, default=50, help='number of training epochs. Test epochs is always 1')
+        self.parser.add_argument('--epochs', type=int, default=30, help='number of training epochs. Test epochs is always 1')
         self.parser.add_argument('--batch_size', type=int, default=20, help='input batch size')
         
         self.parser.add_argument('--uptype', type=str, default='deconv', help='upsample or deconv')
@@ -69,13 +69,14 @@ class Options():
         
         
         #only lr is being used rn. Should change other sched params to patience etc...
-        self.parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
         self.parser.add_argument('--lb', type=float, default=1, help='loss 2 coefficient')
         self.parser.add_argument('--lc', type=float, default=0.05, help='loss 3 coefficient')
         
+        self.parser.add_argument('--threshes', type=str, default='[0.5, 0.75, 0.90, 0.95, 0.975]', help='threshs in test')
         self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
         
         self.parser.add_argument('--verbose', type=int, default=True, help='verbosity; explanation goes here')
@@ -101,8 +102,8 @@ class Options():
             self.opt.dataroot = '/media/arjun/VascLab EVO/projects/oct_ca_seg/actual final data'
             self.opt.runsaves_dir = '/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves'
         elif self.opt.location == 'pawsey':
-            self.opt.dataroot = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
-            self.opt.runsaves_dir = '/scratch/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'
+            self.opt.dataroot = '/group/pawsey0271/abalaji/projects/oct_ca_seg/actual final data'  
+            self.opt.runsaves_dir = '/group/pawsey0271/abalaji/projects/oct_ca_seg/run_saves'
         elif self.opt.location == 'laptop':
             self.opt.dataroot ='/media/arjunbalaji/Arjun1TB/VascLabData/OCT MACHINA DATA/train_data' 
             self.opt.runsaves_dir = '/home/arjunbalaji/Documents/Projects/oct_ca_seg/run_saves'
@@ -418,12 +419,15 @@ class OptionsHome():
         self.parser.add_argument('--activation', type=str, default='relu', help='activation function: relu, elu')
         self.parser.add_argument('--normalization', type=str, default='batch', help='normalization function: batch, instance')
 
-        self.parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+        self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
         self.parser.add_argument('--lb', type=float, default=1, help='loss 2 coefficient')
         self.parser.add_argument('--lc', type=float, default=0.05, help='loss 3 coefficient')
+        
+        
+        self.parser.add_argument('--threshes', type=str, default='[0.5, 0.75, 0.90, 0.95, 0.975]', help='threshs in test')
         
         self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
         
