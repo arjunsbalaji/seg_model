@@ -15,6 +15,17 @@ from pathlib import Path
 
 
 start_time = time.time()
+def print_results(data_dict, name):
+    listofvalues = np.array(list(data_dict.values()))
+    sys.stdout.write(name + ' data' + '\n' + \
+                     'Mean ' + str(np.mean(listofvalues)) + '\n' + \
+                     'Std ' + str(np.std(listofvalues)) + '\n' + \
+                     'Max ' +str(np.max(listofvalues)) + '\n' + \
+                     'Min ' + str(np.min(listofvalues)) + '\n')
+    return True
+
+
+
 
 class Test(object):
     def __init__(self, opt, model, testdata, setsize, thresholds):
@@ -108,10 +119,10 @@ class Test(object):
             
         self.testtime = time.time()-starttime
             
-        sys.stdout.write('Mean ' + str(1-np.mean(np.array(self.col_losses1))) + '\n' + \
-                         'Std ' + str(np.std(np.array(self.col_losses1))) + '\n' + \
-                         'Max ' +str(1-np.max(np.array(self.col_losses1))) + '\n' + \
-                         'Min ' + str(1-np.min(np.array(self.col_losses1))) + '\n')
+        print_results(self.sensdata, 'Sensitivity')
+        print_results(self.specdata, 'Specificity')
+        print_results(self.paccdata, 'Pixel Accuracy')
+        print_results(self.dicedata, 'Dice Score')
         
         if self.opt.save:
             savey = Path(self.opt.runsaves_dir+'/'+self.opt.name+'/analysis')
@@ -131,3 +142,4 @@ class Test(object):
                 np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'analysis', 'testNAMES.npy'), self.testnames)
                 np.save(os.path.join(self.opt.runsaves_dir, self.opt.name, 'testsamples', name), self.testsamples[name].cpu().numpy())
             '''
+            

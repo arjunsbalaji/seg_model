@@ -76,8 +76,8 @@ class Train(object):
         
         #make this len (traindataset) for pawsey
 
-        total_len = len(self.trainsetsize)
-        batches_per_epoch = total_len / self.opt.batch_size
+        total_len = len(self.traindata)
+        batches_per_epoch = (total_len / self.opt.batch_size)
         
         
         for epoch in epochs:
@@ -193,7 +193,7 @@ class Train(object):
 
         self.valloader = torch.utils.data.DataLoader(self.valdata,
                                                      batch_size = self.opt.batch_size,
-                                                     shuffle= False)#),
+                                                     shuffle= False)
                                                      #sampler = sampler.SubsetRandomSampler(self.valsetsize))
         
         self.valcol_losses1 = []
