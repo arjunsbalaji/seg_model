@@ -10,6 +10,7 @@ Created on Sun Sep  8 23:09:46 2019
 from functools import partial
 import torch, math, os
 import json
+import numpy as np
 
 def annealer(f):
     def _inner(start, end): return partial(f, start, end)
@@ -82,6 +83,35 @@ def spec(c, l):
 
 def acc(c, l):
     return torch.sum(c,dim=(1,2)) / torch.prod(torch.tensor(l.size()[-2:-1]))
+
+def jsonloaddict(analy_path, dict_name):
+    f = open(os.path.join(analy_path, dict_name + '.json'))
+    dictionary = json.load(f)
+    f.close()
+    return dictionary
+
+def dict_to_difficulty(dictionary, threshold):
+    for k,v in dictionary.items():
+        if v<0.96:
+            dictionary[k] = 1 # 9.3656 is class imbalance coefficient
+        else:
+            dictionary[k] = 0
+    return dictionary
+
+def get_hard(dictionary):
+    hardnames=[]
+    for k,v in dictionary.items():
+        if v!=0:
+            hardnames.append(k)
+    return hardnames
+
+def get_classifier_results(valloss, hardnames):
+    answers=list(valloss.values())
+    total_percent_correct = np.array(answers).sum()/len(answers)
+    for k,v in valloss.items():
+        hardcorrect = [True for a in hardnames if a==k and v==True]
+    hardcorrect = np.array(hardcorrect).sum()/len(hardnames)
+    return 100*total_percent_correct, 100*hardcorrect
 
 
 

@@ -16,12 +16,13 @@ from pathlib import Path
 
 start_time = time.time()
 def print_results(data_dict, name):
+    
     listofvalues = np.array(list(data_dict.values()))
     sys.stdout.write(name + ' data' + '\n' + \
                      'Mean ' + str(np.mean(listofvalues)) + '\n' + \
                      'Std ' + str(np.std(listofvalues)) + '\n' + \
                      'Max ' +str(np.max(listofvalues)) + '\n' + \
-                     'Min ' + str(np.min(listofvalues)) + '\n')
+                     'Min ' + str(np.min(listofvalues)) + '\n' +'\n')
     return True
 
 
@@ -75,7 +76,7 @@ class Test(object):
             
             '''
             #print(self.testsamples,sample['case_name'])
-            if self.opt.save:
+            if self.opt.save:softdice
                 self.testsamples[sample['case_name'][0]] = torch.tensor(
                         torch.cat((capsout.detach(),
                                    recon.detach()), dim=0))
@@ -109,13 +110,13 @@ class Test(object):
             p_acc = j.acc(threshed, label_data).cpu()
             
             
-            self.sensdata[['case_name'][0]] = list(np.array(sens).astype(float))
-            self.specdata[['case_name'][0]] = list(np.array(spec).astype(float))
-            self.paccdata[['case_name'][0]] = list(np.array(p_acc).astype(float))
-            self.dicedata[['case_name'][0]] = 1-loss1.item()
+            self.sensdata[sample['case_name'][0]] = list(np.array(sens).astype(float))
+            self.specdata[sample['case_name'][0]] = list(np.array(spec).astype(float))
+            self.paccdata[sample['case_name'][0]] = list(np.array(p_acc).astype(float))
+            self.dicedata[sample['case_name'][0]] = 1-loss1.item()
             
             
-            sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(1 - self.col_losses1[i]) + '\n')
+            #sys.stdout.write(sample['case_name'][0] + ' loss: ' + str(1 - self.col_losses1[i]) + '\n')
             
         self.testtime = time.time()-starttime
             

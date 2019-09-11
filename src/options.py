@@ -79,6 +79,11 @@ class Options():
         self.parser.add_argument('--threshes', type=str, default='[0.5, 0.75, 0.90, 0.95, 0.975]', help='threshs in test')
         self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
         
+        self.parser.add_argument('--classify', type=bool, default=True, help='True to classify, False to not. Only works if train&save==True')
+        self.parser.add_argument('--cl_e', type=int, default=5, help='classification epochs')
+        
+        
+        
         self.parser.add_argument('--verbose', type=int, default=True, help='verbosity; explanation goes here')
         self.initialized = True
     
@@ -399,8 +404,8 @@ class OptionsHome():
         self.parser.add_argument('--display_id', type=int, default=200, help='window id of the web display')
         
 
-        self.parser.add_argument('--start_size', type=tuple, default=(224,224), help='resize initial image to this size')
-        self.parser.add_argument('--c_size', type=tuple, default=(224,224), help='cropped size ')
+        self.parser.add_argument('--start_size', type=tuple, default=(256,256), help='resize initial image to this size')
+        self.parser.add_argument('--c_size', type=tuple, default=(256,256), help='cropped size ')
         self.parser.add_argument('--inputchannels', type=int, default=3, help='number of input channels (image, df, lg) = 3')
         self.parser.add_argument('--primmaps', type=int, default=4, help='#primary maps')
         self.parser.add_argument('--primdims', type=int, default=16, help='#primary capsule vector dimensions')                                                  
@@ -422,6 +427,7 @@ class OptionsHome():
         self.parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
         self.parser.add_argument('--sgamma', type=float, default=0.8, help='scheduler gamma')
         self.parser.add_argument('--sstep', type=int, default=50, help='scheduler step')
+        
         self.parser.add_argument('--la', type=float, default=0.1, help='loss 1 coefficient')
         self.parser.add_argument('--lb', type=float, default=1, help='loss 2 coefficient')
         self.parser.add_argument('--lc', type=float, default=0.05, help='loss 3 coefficient')
@@ -429,8 +435,12 @@ class OptionsHome():
         
         self.parser.add_argument('--threshes', type=str, default='[0.5, 0.75, 0.90, 0.95, 0.975]', help='threshs in test')
         
-        self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
+        self.parser.add_argument('--classify', type=bool, default=True, help='True to classify, False to not. Only works if train&save==True')
+        self.parser.add_argument('--cl_e', type=int, default=1, help='classification epochs')
         
+        
+        
+        self.parser.add_argument('--logging', type=bool, default=True, help='create gpu mem logs. turn save on to save.')
         self.parser.add_argument('--verbose', type=int, default=True, help='verbosity; explanation goes here')
         self.initialized = True
     

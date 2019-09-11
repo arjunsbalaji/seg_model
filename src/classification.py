@@ -7,15 +7,15 @@ Created on Tue Sep  3 17:23:20 2019
 """
 
 import numpy as np
-import torch, os, sys, time, argparse, json
+import torch, os, time
 from model import *
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
-import fastai.vision as fv
 from skimage.filters import gaussian
-from sklearn import preprocessing
 import skimage.transform as skitransforms
-from options import OptionsHome
+import jutils as j
+from pathlib import Path
+import torch.utils.data.sampler as sampler
 
 
 starting = time.time()
@@ -26,7 +26,7 @@ class RandomSingleImageCrop(object):
     Args:
         output_size (tuple or int): Desired output size. If tuple, output is
             matched to output_size. If int, smaller of image edges is matched
-            to output_size keeping aspect ratio the same.
+            to output_size keeping aspe,sysct ratio the same.
     """
     def __init__(self, output_size):
         assert isinstance(output_size, (int, tuple))
@@ -180,7 +180,9 @@ class OCTClassificationDataset(Dataset):
         """This function is mandated by Pytorch and allows us to see how many 
         data points we have in our dataset"""
         return len(self.name_list)
-    
+
+'''
+
 f = open("/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/analysis/softdicepairs.json")
 softdice = json.load(f)
 f.close()
@@ -211,7 +213,7 @@ oct_class_dataset = OCTClassificationDataset(image_data_dir=image_dir,
                                              transform=True)
 
 hardindices = [oct_class_dataset.name_list.index(i) for i in hardnames]
-
+'''
 class LinReluD(torch.nn.Module):
     """New linear block for my classification network"""
     def __init__(self, Fin, Fout):#, first=True):
@@ -401,50 +403,99 @@ class ClassifyCapsNet(torch.nn.Module):
         #print(x.size())        
         return x
 
-
-transfer_model_dict= torch.load('/media/arjun/VascLab EVO/projects/oct_ca_seg/runsaves/Final1-pawsey/checkpoints/checkpoint.pt')['model_state_dict']
-
-cappy = ClassifyCapsNet(o.opt)
-cappy = cappy.to(o.opt.device)
-cappy.load_state_dict(transfer_model_dict, strict=False)
-
-traind, vald = torch.utils.data.random_split(oct_class_dataset, [1922,481])
-
-trainloady=DataLoader(traind, batch_size=int(o.opt.batch_size), shuffle=True)
-
-valloady = DataLoader(vald, batch_size=1, shuffle=False)
-
-cross = torch.nn.CrossEntropyLoss()
-optim = torch.optim.Adam(cappy.parameters(), lr=0.001)
-
-trainingloss = []
-valloss = {}
-for epoch in range(1):
-    for i, sample in enumerate(trainloady):
-        inny = sample['input'].to(o.opt.device)
-        label = sample['label'].to(o.opt.device)
+class Classify(object):
+    def __init__(self, opts, model, classifydataset):
+        self.opts = opts
         
-        optim.zero_grad()
+        self.model = model
         
-        outgvng = cappy(inny)
-        loss = cross(outgvng, label)
-        loss.backward()
-        trainingloss.append(float(loss.data))
-        optim.step()
+        self.classifydata = classifydataset
+        self.loss = torch.nn.CrossEntropyLoss()
         
-    print('val')
-    cappy.eval()    
-    for i, sample in enumerate(valloady):
-        inny = sample['input'].to(o.opt.device)
-        label = sample['label'].to(o.opt.device)
+        trainsize = int(len(classifydataset) * 0.7)
+        valsize = len(classifydataset) - trainsize
+        self.trainclassdata, self.valclassdata = torch.utils.data.random_split(self.classifydata, [trainsize, valsize])
         
-        outgvng = cappy(inny)
-        pres = torch.argmax(outgvng, 1)
+        self.trainloader = DataLoader(self.trainclassdata, batch_size=self.opts.batch_size, shuffle=False)#, sampler = sampler.SubsetRandomSampler(range(5)))
+        self.valloader = DataLoader(self.valclassdata, batch_size=1, shuffle=False)#, sampler = sampler.SubsetRandomSampler(range(5)))
         
-        valloss[sample['case_name'][0]]=bool((pres==label).cpu())
+        self.sched = j.combine_scheds([0.3, 0.7], [j.sched_cos(0.00001, 0.6), j.sched_cos(0.6, 2e-06)])
+        initlr = self.sched(0)
+        self.optim = torch.optim.Adam([{'params':self.model.lin1.parameters(),'lr':initlr},
+                                        {'params':self.model.lin2.parameters(),'lr':initlr},
+                                        {'params':self.model.lin3.parameters(),'lr':initlr}], lr=0.001)
+        
+        total_batches = len(self.trainclassdata)/self.opts.batch_size
+        self.increment = 1/total_batches
+        
+        self.hardnames = j.get_hard(self.classifydata.labels_dict)
+        self.lrs_log = []
+        
+    def classify(self):
         
         
+        self.training_loss_means = {}
+        self.valloss = {}
+        
+        self.model.train()    
+        
+        st = time.time()
+        
+        for epoch in range(self.opts.cl_e):
+            self.e_iter = 0.
+            e_loss = []
+            for i,sample in enumerate(self.trainloader):
+
+                
+                self.lr_last = self.sched(self.e_iter)
+                self.lrs_log.append(self.lr_last)
+                
+                self.optim.param_groups[0]['lr'] = self.lr_last
+                self.optim.param_groups[1]['lr'] = self.lr_last
+                self.optim.param_groups[2]['lr'] = self.lr_last
+                
+                inputd = sample['input'].to(self.opts.device)
+                labeld = sample['label'].to(self.opts.device)
+                
+                self.optim.zero_grad()
+                
+                out = self.model(inputd)
+                self.lossi = self.loss(out, labeld)
+                
+                
+                e_loss.append(self.lossi.data.item())
+                self.optim.step()
+                
+                
+                self.e_iter += self.increment
+                
+                if self.e_iter > 1:
+                    self.iter=0.999
+                    
+            mu_tr_loss = np.mean(np.array(e_loss))
+            self.training_loss_means[str(epoch)] = mu_tr_loss
+        
+
+        self.model.eval()    
+        for i, sample in enumerate(self.valloader):
+            inputd = sample['input'].to(self.opts.device)
+            labeld = sample['label'].to(self.opts.device)
+        
+            out = self.model(inputd)
+            pres = torch.argmax(out, 1)
+            
+            self.valloss[sample['case_name'][0]]=bool((pres==labeld).cpu())
+        
+        
+        self.total, self.hard = j.get_classifier_results(self.valloss, self.hardnames)
+        
+        
+        self.endtime = time.time()-st
+        
+        savey = Path(self.opts.runsaves_dir+'/'+self.opts.name+'/analysis')
+        j.jsonsaveddict(self.training_loss_means, savey, 'classify_tr_mus.json')
+        j.jsonsaveddict(self.valloss, savey, 'classify_val.json')
         
     
-print(time.time()-starting)
+
 

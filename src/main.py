@@ -5,9 +5,9 @@ Created on Mon May 13 16:58:24 2019
 
 @author: arjunbalaji
 """
-from options import OptionsHome
+from options import Options
 
-o = OptionsHome()
+o = Options()
 o.parse()
 
 if o.opt.save:
@@ -17,6 +17,8 @@ import sys, os, torch, dataset, time, warnings, model
 from pathlib import Path
 import train1 as train
 import test1 as test
+import classification as c
+import jutils as j
 
 warnings.simplefilter('ignore')
 
@@ -70,7 +72,7 @@ if o.opt.loadcheckpoint:
 
 #these are only used im home testing, when randomsubset samplers are on in test and train!!! 
 setsize={'train':range(5),
-         'val':range(5)}
+         'val':range(20)}
 
 
 
@@ -83,12 +85,10 @@ if o.opt.train:
     
 
 if o.opt.test:
-    sys.stdout.write('Starting Testing... ' + str(time.time()-start_time) + 'secs so far.' + '\n')
+    sys.stdout.write('Starting Testing... ' + str(time.time()-start_time) + 'secs so far.' + '\n' + '\n')
     Tester = test.Test(o.opt, octmodel, valdata, setsize['val'], test_thresholds)
     Tester.test()
     sys.stdout.write('Testing completed in: ' + str(Tester.testtime)+ 'secs.' +'\n')
-
-    
 
 
 checkpointpath = os.path.join(o.opt.runsaves_dir, o.opt.name, 'checkpoints')
@@ -100,8 +100,41 @@ if o.opt.save:
                 'scheduler_state_dict': Trainer.scheduler.state_dict(),
                 'epoch': o.opt.epochs,
                 'loss' : Trainer.loss.data}, 
-                os.path.join(checkpointpath, 'checkpoint.pt'))
+                os.path.join(checkpointpath, 'segcheckpoint.pt'))
     
-sys.stdout.write('Completed in: ' + str(time.time() - start_time)+ 'secs.' +'\n')
-                
+sys.stdout.write('OCTSEG Completed in: ' + str(time.time() - start_time)+ 'secs.' +'\n' +'\n')
+
+if o.opt.classify:
+    sys.stdout.write('Starting Classify... ' + '\n')
+    
+    transfer_model_dict= torch.load(os.path.join(checkpointpath, 'segcheckpoint.pt'))['model_state_dict']
+    
+    labels = j.jsonloaddict(os.path.join(o.opt.runsaves_dir, o.opt.name,'analysis'), 'dicedata') #dicedata from now on
+    labels = j.dict_to_difficulty(labels, 0.96)
+    images_dir = os.path.join(o.opt.dataroot, 'images')
+    
+    classifydataset = c.OCTClassificationDataset(images_dir,
+                                                        labels,
+                                                        o.opt.start_size,
+                                                        o.opt.c_size,
+                                                        transform=True)
+    
+    cappy = c.ClassifyCapsNet(o.opt)
+    cappy = cappy.to(o.opt.device)
+    
+    cappy.load_state_dict(transfer_model_dict, strict=False)
+    
+    Classifier = c.Classify(o.opt, cappy, classifydataset)
+    Classifier.classify()    
+    sys.stdout.write('total: ' + str(Classifier.total) + '  |   hard: ' + str(Classifier.hard) +'\n'+'\n')
+
+    if o.opt.save:
+        torch.save({'model_state_dict' : Classifier.model.state_dict(),
+                    'optimizer_state_dict':Classifier.optim.state_dict(),
+                    'epoch': o.opt.cl_e,
+                    'loss' : Classifier.lossi.data}, 
+                    os.path.join(checkpointpath, 'classifycheckpoint.pt'))
+        
+    sys.stdout.write('OCTSEG Completed in: ' + str(Classifier.endtime)+ 'secs.' +'\n')
+       
 
