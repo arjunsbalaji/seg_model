@@ -71,7 +71,7 @@ if o.opt.loadcheckpoint:
 
 
 #these are only used im home testing, when randomsubset samplers are on in test and train!!! 
-setsize={'train':range(5),
+setsize={'train':range(100),
          'val':range(20)}
 
 
