@@ -3,6 +3,7 @@
 import os, sys, time, tqdm, numbers, math, shutil
 
 os.chdir('/workspace/oct_ca_seg/')
+#import seg_model.src.model as m
 
 from pathlib import Path
 import torch as t
@@ -19,6 +20,9 @@ import torch.nn.functional as F
 
 data_in_path = Path('/workspace/oct_ca_seg/dummy_data_for_script/')
 data_out_path = Path('/workspace/oct_ca_seg/dummy_data_for_script/dummy_out')
+
+#data_in_path = Path('/workspace/oct_ca_seg/two_cases/d/images/')
+#data_out_path = Path('/workspace/oct_ca_seg/two_cases/d/preds/')
 
 if not os.path.exists(data_out_path):
     os.mkdir(data_out_path)
@@ -360,12 +364,14 @@ model.load_state_dict(torch.load(Path('/workspace/oct_ca_seg/runsaves/capstuneda
 
 del modelfake
 
-model = model.cpu()
+model = model.cuda()#cpu()
+
 
 #%%time 
 model.eval()
 for i, sample in tqdm.tqdm(enumerate(data_loader)): 
     xb, name = sample['input'], sample['case_name'][0][0]
+    xb=xb.cuda()
     pred = torch.argmin(model(xb)[0], dim=1)
     pred = np.array(pred.data[0])
     plt.imsave(data_out_path/name, pred, cmap=cm.gray)
