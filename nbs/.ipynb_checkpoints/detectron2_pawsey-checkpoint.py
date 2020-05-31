@@ -61,3 +61,5 @@ OCT_ev = OCT_Evaluator(validCOCO)
 evaluators = DatasetEvaluators([coco_ev, OCT_ev])
 val_loader = build_detection_test_loader(cfg, projectname+"valid")
 results = inference_on_dataset(predictor.model, val_loader, evaluators)
+
+save_results(results, Path(cfg.OUTPUT_DIR)/'results.json')

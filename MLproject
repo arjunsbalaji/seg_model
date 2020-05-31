@@ -1,0 +1,14 @@
+name: oct ca 
+
+docker_env:
+   image: abalajiaus/oct_ca:latest-fastai-detectron2-gluon-mlflow 
+   volumes: ["~/Desktop/projects/:/workspace/"]
+   environment: [%j]
+entry_points:
+  main:
+    parameters: 
+      iterations: {type: int, default: 10000}
+    command: "python3 detectron2_pawsey.py --iterations {iterations}"
+  validate:
+    command: "python validate.py"
+

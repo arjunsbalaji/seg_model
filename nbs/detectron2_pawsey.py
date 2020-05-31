@@ -13,7 +13,7 @@ test_path = data_path/'test'
 
 trainCOCO = COCO(train_path/'images/annotations.json')
 validCOCO = COCO(valid_path/'images/annotations.json')
-testCOCO = COCO(valid_path/'images/annotations.json')
+testCOCO = COCO(test_path/'images/annotations.json')
 
 for d in [train_path, valid_path, test_path]:
     DatasetCatalog.register(projectname + d.name,
@@ -61,3 +61,5 @@ OCT_ev = OCT_Evaluator(validCOCO)
 evaluators = DatasetEvaluators([coco_ev, OCT_ev])
 val_loader = build_detection_test_loader(cfg, projectname+"valid")
 results = inference_on_dataset(predictor.model, val_loader, evaluators)
+
+save_results(results, Path(cfg.OUTPUT_DIR)/'results.json')

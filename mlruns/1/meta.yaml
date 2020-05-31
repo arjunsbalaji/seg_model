@@ -1,0 +1,4 @@
+artifact_location: file:///workspace/oct_ca_seg/seg_model/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: d2
