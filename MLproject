@@ -7,7 +7,8 @@ entry_points:
   main:
     parameters: 
       iterations: {type: int, default: 1000}
-    command: "python3 detectron2_pawsey.py --iterations {iterations}"
+      bs: {type: int, default: 1}
+    command: "python3 detectron2_pawsey.py --iterations {iterations} --bs {bs}"
   validate:
     command: "python validate.py"
 
