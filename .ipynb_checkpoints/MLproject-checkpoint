@@ -8,9 +8,9 @@ docker_env:
 entry_points:
   main:
     parameters: 
-      iterations: {type: int, default: 1000}
+      iters: {type: int, default: 1000}
       bs: {type: int, default: 1}
-    command: "python3 detectron2_pawsey.py --iterations {iterations} --bs {bs}"
+    command: "python detectron2_pawsey.py --iters {iters} --bs {bs}"
   validate:
     command: "python validate.py"
 
