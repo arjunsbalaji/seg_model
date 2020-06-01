@@ -113,6 +113,3 @@ class OCT_Evaluator(DatasetEvaluator):
                 "specs": self.specs,
                 "scores": self.scores}
     
-def save_results(results, path):
-    with open(path, 'w') as output_json_file:
-        json.dump(results, output_json_file, indent=4)

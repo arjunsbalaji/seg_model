@@ -10,7 +10,9 @@ entry_points:
     parameters: 
       iters: {type: int, default: 1000}
       bs: {type: int, default: 1}
-    command: "python3 detectron2_pawsey.py --iters {iters} --bs {bs}"
+    command: "python3 nbs/train.py {iters} {bs}"
   validate:
-    command: "python validate.py"
+    parameters:
+      thresh: {type: float, default: 0.7}
+    command: "python3 nbs/validate.py {thresh}"
 
