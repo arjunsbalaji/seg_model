@@ -6,12 +6,13 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 
 checkpoint_name = sys.argv[1]
-thresh = sys.argv[2]
-test = sys.argv[3]==True
+thresh = float(sys.argv[2])
+test = int(sys.argv[3])==True
 
 if test: runtype = 'test'
 else: runtype = 'valid'
 
+projectname = 'OCT'
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 valid_path = data_path/'valid'
 test_path = data_path/'test'
@@ -33,12 +34,15 @@ test_metadata.stuff_classes = ['lumen']
 test_metadata.thing_classes = ['lumen']
 
 cfg = get_cfg()
-cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/configD2.yaml')
+cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/01_OCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml') #configD2.yaml')
+
+cfg.DATASETS.TEST = (projectname+runtype,)
+
+
+print(cfg.DATASETS.TEST)
 cfg.OUTPUT_DIR = ('/workspace/oct_ca_seg/runsaves/'+checkpoint_name)
 
 with mlflow.start_run():
-    
-    
     
     mlflow.log_param('checkpoint_name',checkpoint_name)
     mlflow.log_param('thresh',thresh)
@@ -49,16 +53,16 @@ with mlflow.start_run():
     predictor = DefaultPredictor(cfg)
 
 
-    coco_ev = COCOEvaluator(projectname+'_'+runtype, cfg, False, output_dir=cfg.OUTPUT_DIR)
+    coco_ev = COCOEvaluator(projectname+runtype, cfg, False, output_dir=cfg.OUTPUT_DIR)
     OCT_ev = OCT_Evaluator(validCOCO)
 
     evaluators = DatasetEvaluators([coco_ev, OCT_ev])
-    val_loader = build_detection_test_loader(cfg, projectname+'_'+runtype)
+    val_loader = build_detection_test_loader(cfg, projectname+runtype)
     results = inference_on_dataset(predictor.model, val_loader, evaluators)
 
     #client = mlflow.tracking.MlflowClient()
     runname = mlflow.active_run().info.run_id
-    save_results(results, Path(cfg.OUTPUT_DIR)/(runname+'_results.json')
+    save_results(results, str(Path(cfg.OUTPUT_DIR)/(runname+'_results.json')))
     
     stats = {'u_dice': np.mean(list(results['dices'].values())),
              'u_spec': np.mean(list(results['specs'].values())),
@@ -66,5 +70,6 @@ with mlflow.start_run():
              'u_acc': np.mean(list(results['accs'].values()))}
              
     mlflow.log_metrics(stats)
-    mlflow.pytorch.log_model(predictor.model, registered_model_name='first mlflow try')
-    mlflow.pytorch.save_model(predictor.model)
+    mlflow.log_artifact(cfg.OUTPUT_DIR+'/results.json')
+    #mlflow.pytorch.log_model(predictor.model, '')
+    #mlflow.pytorch.save_model(predictor.model)
