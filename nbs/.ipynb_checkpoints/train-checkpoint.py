@@ -6,16 +6,20 @@ import mlflow.pytorch
 from mlflow.tracking import MlflowClient
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
-
+'''
+This python file takes 3 CLI arguments run_num, iters, bs. All are ints. Defaults listed below.
+'''
 try:
     iters = int(sys.argv[2])
     bs = int(sys.argv[3])
-    run_num = sys.argv[1]
+    run_num = sys.argv[1] #data size should be 'med'or 'all'
 except:
     iters=1000
     bs=1
     run_num='NA'
 
+anno_file_name = 'medium_set_annotations.json' #full is annotations.josn med is 'medium_set_annotations.json'
+    
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 
 projectname = 'OCT'
@@ -23,20 +27,23 @@ projectname = 'OCT'
 train_path = data_path/'train'
 valid_path = data_path/'valid'
 
-trainCOCO = COCO(train_path/'images/annotations.json')
-validCOCO = COCO(valid_path/'images/annotations.json')
+trainCOCO = COCO(train_path/('images/'+anno_file_name))
+validCOCO = COCO(valid_path/('images/'+anno_file_name))
 
 for d in [train_path, valid_path]:
     DatasetCatalog.register(projectname + d.name,
-                            lambda d=d: load_coco_json(d/('images/annotations.json'), d/'images', dataset_name=d.name))  #get_dicts(d.name))#
+                            lambda d=d: load_coco_json(d/('images/'+anno_file_name), d/'images', dataset_name=d.name))  #get_dicts(d.name))#
     MetadataCatalog.get(projectname+ d.name).set(stuff_classes=["lumen"])
     
 train_metadata = MetadataCatalog.get(projectname+'train')
 train_metadata.stuff_classes = ['lumen']
 train_metadata.thing_classes = ['lumen']
+train_metadata.json_file = str(train_path/('images/'+anno_file_name))
+
 valid_metadata = MetadataCatalog.get(projectname+'valid')
 valid_metadata.stuff_classes = ['lumen']
 valid_metadata.thing_classes = ['lumen']
+valid_metadata.json_file = str(valid_path/('images/'+anno_file_name))
 
 checkpoint = '/workspace/oct_ca_seg/runsaves/initPawsey/'
 
@@ -61,7 +68,8 @@ with open(cfg.OUTPUT_DIR +'/' + 'configD2.yaml', 'w') as file:
     file.write(cfg.dump())
 
 
-#mlflow.set_tracking_uri(cfg.OUTPUT_DIR)
+tracking_uri = 'file:/workspace/oct_ca_seg/runsaves/mlruns'
+mlflow.set_tracking_uri(tracking_uri)
 
 with mlflow.start_run():
     
@@ -103,4 +111,4 @@ with mlflow.start_run():
     mlflow.log_artifact(cfg.OUTPUT_DIR+'/results.json')
     
     mlflow.pytorch.log_model(trainer.model, 'model_mlflow_log')
-    mlflow.pytorch.save_model(trainer.model, 'model_mlflow_save')
+    #mlflow.pytorch.save_model(trainer.model, 'model_mlflow_save')
