@@ -17,26 +17,29 @@ except:
     checkpoint_name = 'dummy'
     thresh = 0.7
     size = 0
+    test = 0
     
 
 if test: runtype = 'test'
 else: runtype = 'valid'
 
 if size == 0: anno_file_name = 'medium_set_annotations.json'
-else:
+else: anno_file_name = 'annotations.json'
 
-    
+print(thresh)
+
 projectname = 'OCT'
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 valid_path = data_path/'valid'
 test_path = data_path/'test'
 
-validCOCO = COCO(valid_path/'images/annotations.json')
-testCOCO = COCO(test_path/'images/annotations.json')
+validCOCO = COCO(valid_path/('images/'+anno_file_name))
+testCOCO = COCO(test_path/('images/'+anno_file_name))
+
 
 for d in [valid_path, test_path]:
     DatasetCatalog.register(projectname + d.name,
-                            lambda d=d: load_coco_json(d/('images/annotations.json'), d/'images', dataset_name=d.name))  #get_dicts(d.name))#
+                            lambda d=d: load_coco_json(d/('images/'+anno_file_name), d/'images', dataset_name=d.name))  #get_dicts(d.name))#
     MetadataCatalog.get(projectname+ d.name).set(stuff_classes=["lumen"])
     
     
@@ -51,7 +54,7 @@ test_metadata.thing_classes = ['lumen']
 test_metadata.json_file = str(test_path/('images/'+anno_file_name))
 
 cfg = get_cfg()
-cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/01_OCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml') #configD2.yaml')
+cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/configD2.yaml')#'/01_OCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml') 
 
 cfg.DATASETS.TEST = (projectname+runtype,)
 
@@ -75,7 +78,7 @@ with mlflow.start_run():
 
 
     coco_ev = COCOEvaluator(projectname+runtype, cfg, False, output_dir=cfg.OUTPUT_DIR)
-    OCT_ev = OCT_Evaluator(validCOCO)
+    OCT_ev = OCT_Evaluator(validCOCO, thresh)
 
     evaluators = DatasetEvaluators([coco_ev, OCT_ev])
     val_loader = build_detection_test_loader(cfg, projectname+runtype)
@@ -83,7 +86,7 @@ with mlflow.start_run():
 
     #client = mlflow.tracking.MlflowClient()
     runname = mlflow.active_run().info.run_id
-    save_results(results, str(Path(cfg.OUTPUT_DIR)/(runname+'_results.json')))
+    save_results(results, str(cfg.OUTPUT_DIR+'/results'+checkpoint_name+'_'+size+'.json'))
     
     stats = {'u_dice': np.mean(list(results['dices'].values())),
              'u_spec': np.mean(list(results['specs'].values())),
@@ -91,6 +94,6 @@ with mlflow.start_run():
              'u_acc': np.mean(list(results['accs'].values()))}
              
     mlflow.log_metrics(stats)
-    mlflow.log_artifact(cfg.OUTPUT_DIR+'/results.json')
+    mlflow.log_artifact(cfg.OUTPUT_DIR+'/results'+checkpoint_name+'_'+size+'.json')
     #mlflow.pytorch.log_model(predictor.model, '')
     #mlflow.pytorch.save_model(predictor.model)

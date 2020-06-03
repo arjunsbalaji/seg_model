@@ -26,7 +26,8 @@ else: runtype = 'valid'
 if size == 0: anno_file_name = 'medium_set_annotations.json'
 else: anno_file_name = 'annotations.json'
 
-    
+print(thresh)
+
 projectname = 'OCT'
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 valid_path = data_path/'valid'
@@ -53,7 +54,7 @@ test_metadata.thing_classes = ['lumen']
 test_metadata.json_file = str(test_path/('images/'+anno_file_name))
 
 cfg = get_cfg()
-cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/01_OCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml') #configD2.yaml')
+cfg.merge_from_file('/workspace/oct_ca_seg/runsaves/'+ checkpoint_name + '/configD2.yaml')#'/01_OCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml') 
 
 cfg.DATASETS.TEST = (projectname+runtype,)
 
