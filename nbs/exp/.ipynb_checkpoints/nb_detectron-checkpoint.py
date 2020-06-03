@@ -78,8 +78,9 @@ def Acc(c, l):
 
 #export
 class OCT_Evaluator(DatasetEvaluator):
-    def __init__(self, validset):
+    def __init__(self, validset, topThresh):
         self.validset = validset
+        self.topThresh = topThresh
         
     def reset(self):
         self.dices = {} 
@@ -88,12 +89,26 @@ class OCT_Evaluator(DatasetEvaluator):
         self.accs = {} 
         self.scores = {}
         
+    def processOutputsToMask(self, outputs):
+        scores = outputs['instances'].scores
+        if len(scores)==0: 
+            return torch.zeros(outputs['instances'].image_size).unsqueeze(0).cuda()
+        else:
+            good_indices = [i for i,x in enumerate(outputs['instances'].scores) if x>self.topThresh]
+            if not good_indices: good_indices= [torch.argmax(scores).item()]
+            #good_indices = torch.tensor(good_indices, dtype=torch.long).cuda()
+        #print(good_indices)
+        #print(outputs['instances'].pred_masks.size())
+        mask = outputs['instances'].pred_masks.clone().detach()[good_indices]
+        #mask = torch.index_select(outputs['instances'].pred_masks.clone().detach(), 0, good_indices)
+        mask = mask.int().sum(dim=0).unsqueeze(0).cuda()
+        mask = (mask>0).float()
+        return mask
+    
     def process(self, inputs, outputs):
         for input, output in zip(inputs, outputs):
             id = input['image_id']
-            pred_masks = output['instances'].pred_masks.clone().detach().int()
-            pred_masks = pred_masks.sum(dim=0).unsqueeze(0)
-            pred_masks = (pred_masks>0).float()
+            pred_masks = pred_masks = self.processOutputsToMask(output)
             labels = torch.tensor(annsToSingleBinMask(self.validset, id)).cuda().unsqueeze(0)
             #labels = torch.tensor(self.validset.annToMask(self.validset.anns[id])).cuda().unsqueeze(0)
             #print(pred_masks.size(), labels.size())

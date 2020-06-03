@@ -8,11 +8,16 @@ docker_env:
 entry_points:
   main:
     parameters: 
+      run_num: {type: str, default: 'NA'}
       iters: {type: int, default: 1000}
       bs: {type: int, default: 1}
-    command: "python3 nbs/train.py {iters} {bs}"
+      size: {type int, deault: 0} 
+    command: "python3 nbs/train.py {run_num} {iters} {bs} {size}"
   validate:
     parameters:
+      checkpoint_name: {type: str, defualt: 'NA'}
       thresh: {type: float, default: 0.7}
-    command: "python3 nbs/validate.py {thresh}"
+      size: {type: int, default: 0}
+      test: {type: int, default: 0}
+    command: "python3 nbs/validate.py {checkpoint} {thresh} {size} {test}"
 

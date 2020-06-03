@@ -11,12 +11,21 @@ This python file takes 3 CLI arguments checkpoint_name, thresh, test. All are in
 try:
     checkpoint_name = sys.argv[1]
     thresh = float(sys.argv[2])
-    test = int(sys.argv[3])==True
+    size = str(sys.argv[3])
+    test = int(sys.argv[4])==True
 except:
-    checkpoint_name
+    checkpoint_name = 'dummy'
+    thresh = 0.7
+    size = 0
+    
+
 if test: runtype = 'test'
 else: runtype = 'valid'
 
+if size == 0: anno_file_name = 'medium_set_annotations.json'
+else:
+
+    
 projectname = 'OCT'
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 valid_path = data_path/'valid'
@@ -49,6 +58,10 @@ cfg.DATASETS.TEST = (projectname+runtype,)
 
 print(cfg.DATASETS.TEST)
 cfg.OUTPUT_DIR = ('/workspace/oct_ca_seg/runsaves/'+checkpoint_name)
+
+
+tracking_uri = 'file:/workspace/oct_ca_seg/runsaves/mlruns'
+mlflow.set_tracking_uri(tracking_uri)
 
 with mlflow.start_run():
     
