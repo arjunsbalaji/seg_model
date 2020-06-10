@@ -1,7 +1,7 @@
 name: octca 
 
 docker_env:
-   image: abalajiaus/oct_ca:latest-fastai-detectron2-gluon-mlflow 
+   image: abalajiaus/oct_ca:latest-skl-ski-mlflow-d2-opencv-fastai-pycocotools
    volumes: ["~/Desktop/projects/:/workspace/"]
    #volumes: ["$MYGROUP/pawsey0271/abalaji/projects/:/workspace/"]
    

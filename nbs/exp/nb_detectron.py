@@ -37,7 +37,7 @@ def lossdice(c,l, iou:bool=False, eps:float=1e-8):
     "Dice coefficient metric for binary target. If iou=True, returns iou metric, classic for segmentation problems."
     n = l.shape[0]
     c = c.view(n,-1).float()
-    l = l.view(n,-1)
+    l = l.reshape(n, -1) # l.view(n,-1)
     intersect = (c * l).sum().float()
     union = (c+l).sum().float()
     if not iou: return (2. * intersect / union if union > 0 else union.new([1.]).squeeze())
@@ -50,7 +50,7 @@ def Sens(c, l):
     #print(c.size(), l.size())
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
-    l=(l.view(n_targs, -1) > 0).float()
+    l=(l.reshape(n, -1) > 0).float()
     inter = torch.sum(c*l, dim=(1))
     union = torch.sum(c, dim=(1)) + torch.sum(l, dim=1) - inter
     #print(inter.size(), union.size())
@@ -61,7 +61,7 @@ def Spec(c,l):
     #returns sens of argmaxxed predition. 
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
-    l=(l.view(n_targs, -1) > 0).float()
+    l=(l.reshape(n, -1) > 0).float()
     c = 1-c
     l=1-l
     inter = torch.sum(c*l, dim=(1))
@@ -72,7 +72,7 @@ def Spec(c,l):
 def Acc(c, l):
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
-    l=(l.view(n_targs, -1) > 0).float()
+    l= (l.view(n_targs, -1) > 0).float()
     c = torch.sum(torch.eq(c,l).float(),dim=1)
     return (c/l.size()[-1]).mean()
 
