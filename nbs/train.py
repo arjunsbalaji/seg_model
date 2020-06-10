@@ -5,7 +5,8 @@ import mlflow
 import mlflow.pytorch
 from mlflow.tracking import MlflowClient
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
-from detectron2.data import build_detection_test_loader
+from detectron2.data import build_detection_train_loader, build_detection_test_loader
+
 '''
 This python file takes 4 CLI arguments run_num (str), iters (int), bs (int), size (int). Defaults listed below.
 bs 0-8 usually. iters 5k-10k, size 0 for medium set, 1 for full
@@ -53,7 +54,7 @@ valid_metadata.json_file = str(valid_path/('images/'+anno_file_name))
 checkpoint = '/workspace/oct_ca_seg/runsaves/initPawsey/'
 
 cfg = get_cfg()
-cfg.merge_from_file(checkpoint + 'initialOCTPawsey_model_mask_rcnn_R_50_FPN_3x.yaml')
+cfg.merge_from_file(checkpoint + 'config.yaml')
 
     
 cfg.SOLVER.MAX_ITER = iters 
@@ -66,6 +67,10 @@ cfg.OUTPUT_DIR = ('/workspace/oct_ca_seg/runsaves/'+run_num+'_pawsey')
 
 cfg.MODEL.WEIGHTS = os.path.join(checkpoint, "model_final.pth")
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7 # set the testing threshold for this model
+
+train_data_loader = build_detection_train_loader(cfg, mapper=mapper)
+test_data_loader = build_detection_test_loader(cfg, projectname+"valid", mapper=mapper)
+
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
 
@@ -90,6 +95,8 @@ with mlflow.start_run():
     
     print(mlflow.get_tracking_uri())
     trainer = DefaultTrainer(cfg) 
+    trainer.build_train_loader = train_data_loader
+    trainer.build_test_loader = test_data_loader
     trainer.resume_or_load(resume=False)
     trainer.train()
 
