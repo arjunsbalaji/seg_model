@@ -20,6 +20,11 @@ import matplotlib.pyplot as plt
 import torch
 import json
 
+
+def save_cfg(cfg, fp):
+    with open(fp, 'w') as file:
+        file.write(cfg.dump())
+
 #export
 def annsToSingleBinMask(cocoset, img_id):
     anns = cocoset.imgToAnns[img_id]
@@ -50,7 +55,8 @@ def Sens(c, l):
     #print(c.size(), l.size())
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
-    l=(l.reshape(n, -1) > 0).float()
+    #l=(l.reshape(n, -1) > 0).float()
+    l=(l.reshape(n_targs, -1) > 0).float()
     inter = torch.sum(c*l, dim=(1))
     union = torch.sum(c, dim=(1)) + torch.sum(l, dim=1) - inter
     #print(inter.size(), union.size())
@@ -61,7 +67,8 @@ def Spec(c,l):
     #returns sens of argmaxxed predition. 
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
-    l=(l.reshape(n, -1) > 0).float()
+    #l=(l.reshape(n, -1) > 0).float()
+    l=(l.reshape(n_targs, -1) > 0).float()
     c = 1-c
     l=1-l
     inter = torch.sum(c*l, dim=(1))
@@ -73,6 +80,7 @@ def Acc(c, l):
     n_targs=l.size()[0]
     c =(c.view(n_targs, -1) > 0).float()
     l= (l.view(n_targs, -1) > 0).float()
+    l=(l.reshape(n_targs, -1) > 0).float()
     c = torch.sum(torch.eq(c,l).float(),dim=1)
     return (c/l.size()[-1]).mean()
 
@@ -133,3 +141,18 @@ def save_results(results, path):
     with open(path, 'w') as file:
         json.dump(dict(results), file)
 
+def mapper(dataset_dict):
+	# Implement a mapper, similar to the default DatasetMapper, but with your own customizations
+	dataset_dict = copy.deepcopy(dataset_dict)  # it will be modified by code below
+	image = utils.read_image(dataset_dict["file_name"], format="BGR")
+	image, transforms = T.apply_transform_gens([T.Resize((256, 256))], image)
+	dataset_dict["image"] = torch.as_tensor(image.transpose(2, 0, 1).astype("float32"))
+
+	annos = [
+		utils.transform_instance_annotations(obj, transforms, image.shape[:2])
+		for obj in dataset_dict.pop("annotations")
+		if obj.get("iscrowd", 0) == 0
+	]
+	instances = utils.annotations_to_instances(annos, image.shape[:2])
+	dataset_dict["instances"] = utils.filter_empty_instances(instances)
+	return dataset_dict
