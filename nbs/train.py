@@ -7,11 +7,11 @@ from mlflow.tracking import MlflowClient
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 '''
-This python file takes 4 CLI arguments run_num, iters, bs, size. All are ints. Defaults listed below.
+This python file takes 4 CLI arguments run_num (str), iters (int), bs (int), size (int). Defaults listed below.
 bs 0-8 usually. iters 5k-10k, size 0 for medium set, 1 for full
 '''
 try:
-    run_num = sys.argv[1] #data size should be 'med'or 'all'
+    run_num = sys.argv[1] 
     iters = int(sys.argv[2])
     bs = int(sys.argv[3])
     size = str(sys.argv[4])

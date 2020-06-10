@@ -7,19 +7,24 @@ from mlflow.tracking import MlflowClient
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 '''
-This python file takes 3 CLI arguments run_num, iters, bs. All are ints. Defaults listed below.
+This python file takes 4 CLI arguments run_num, iters, bs, size. All are ints. Defaults listed below.
+bs 0-8 usually. iters 5k-10k, size 0 for medium set, 1 for full
 '''
 try:
+    run_num = sys.argv[1] 
     iters = int(sys.argv[2])
     bs = int(sys.argv[3])
-    run_num = sys.argv[1] #data size should be 'med'or 'all'
+    size = str(sys.argv[4])
 except:
     iters=1000
     bs=1
     run_num='NA'
+    size = 0
 
-anno_file_name = 'medium_set_annotations.json' #full is annotations.josn med is 'medium_set_annotations.json'
-    
+#anno_file_name = 'medium_set_annotations.json' #full is annotations.josn med is 'medium_set_annotations.json'
+if size == 0: anno_file_name = 'medium_set_annotations.json'
+else: anno_file_name = 'annotations.json'
+
 data_path = Path('/workspace/oct_ca_seg/COCOdata/')
 
 projectname = 'OCT'
@@ -93,7 +98,7 @@ with mlflow.start_run():
 
 
     coco_ev = COCOEvaluator(projectname+"valid", cfg, False, output_dir=cfg.OUTPUT_DIR)
-    OCT_ev = OCT_Evaluator(validCOCO)
+    OCT_ev = OCT_Evaluator(validCOCO, 0.7)
 
     evaluators = DatasetEvaluators([coco_ev, OCT_ev])
     val_loader = build_detection_test_loader(cfg, projectname+"valid")
